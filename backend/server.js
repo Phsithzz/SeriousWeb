@@ -7,16 +7,21 @@ import cors from "cors";
 import bodyParser from "body-parser";
 //database
 import database from "./Config/database.js";
-
+//route
+import categoryRoute from "./Routes/categoryRoute.js"
 //import
 
 //
 const app = express();
-dotenv.config();
-
 app.use(cors());
 app.use(bodyParser.json());
+dotenv.config();
+
 //
+
+//route
+app.use(categoryRoute)
+//route
 
 //run
 const port = process.env.PORT || 3000;

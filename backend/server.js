@@ -8,7 +8,8 @@ import bodyParser from "body-parser";
 //database
 import database from "./Config/database.js";
 //route
-import categoryRoute from "./Routes/categoryRoute.js"
+import productRoute from "./Routes/productRoute.js"
+import variantRoute from "./Routes/variantRoute.js"
 //import
 
 //
@@ -20,7 +21,9 @@ dotenv.config();
 //
 
 //route
-app.use(categoryRoute)
+
+app.use(productRoute)
+app.use(variantRoute)
 //route
 
 //run

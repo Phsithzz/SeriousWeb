@@ -5,25 +5,34 @@ import dotenv from "dotenv";
 //middleware
 import cors from "cors";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 //database
 import database from "./Config/database.js";
 //route
-import productRoute from "./Routes/productRoute.js"
-import variantRoute from "./Routes/variantRoute.js"
+import productRoute from "./Routes/productRoute.js";
+import variantRoute from "./Routes/variantRoute.js";
+import userRoute from "./Routes/userRoute.js";
 //import
-
-//
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
 dotenv.config();
 
 //
+const app = express();
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.use(bodyParser.json());
+app.use(cookieParser());
+//
 
 //route
-
-app.use(productRoute)
-app.use(variantRoute)
+app.use(productRoute);
+app.use(variantRoute);
+app.use(userRoute);
 //route
 
 //run

@@ -60,9 +60,17 @@ export const updateProduct = async (productId, productData) => {
   return rows[0];
 };
 
-export const deleteProduct = async(productId)=>{
-    const {rowCount} = await query("DELETE FROM products WHERE product_id=$1",
-        [productId]
-    )
-    return rowCount > 0
-}
+export const deleteProduct = async (productId) => {
+  const { rowCount } = await query("DELETE FROM products WHERE product_id=$1", [
+    productId,
+  ]);
+  return rowCount > 0;
+};
+
+export const searchProduc = async (searchTerm) => {
+  const { rows } = await query(
+    "SELECT * FROM products WHERE name ILIKE $1 OR description ILIKE $1 OR brand ILIKE $1 OR category_name ILIKE $1",
+    [`%${searchTerm}%`]
+  );
+  return rows;
+};

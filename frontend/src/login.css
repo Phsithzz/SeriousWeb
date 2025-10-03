@@ -1,0 +1,137 @@
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed; /* หรือ absolute ถ้าต้องการให้อยู่ทับเนื้อหาอื่น */
+  top: 0;
+  left: 0;
+  width: 100vw; /* ครอบคลุมเต็มหน้าจอเพื่อใช้เป็นพื้นหลัง */
+  height: 100vh; /* ครอบคลุมเต็มหน้าจอ */
+  background-color: #7D7D7D;
+}
+
+
+.login-box {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 100%;
+  height: 100%;
+  max-width: 443px;
+  max-height: 534px;
+  position: relative;
+  justify-content: center
+
+}
+
+/* Close button styling */
+.close-btn {
+  position: absolute;
+  top: 3.5px;   /* ระยะจากขอบบน container */
+  right: 18px; /* ระยะจากขอบขวา container */  /* ความกว้าง */     /* ความสูง */
+  font-size: 38px;   /* ขนาดตัวอักษร */
+  font-weight: 550;
+  color: #7f7f7f;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #b80000;
+}
+.close-btn-area {
+  display: flex;
+  justify-content: flex-end;
+}
+
+h2 {
+  text-align: center;
+  color: #000000;
+  font-family: "Jost", sans-serif;
+  font-weight: bold;
+  font-size: 40px;               /* เปลี่ยนตามต้องการ */
+  font-style: normal;
+  margin-top: 47px;
+
+}
+
+.email-title{
+  padding: 0px 0px 0px 40px;
+  color: #000000;
+  font-family: "Jost", sans-serif;
+  font-weight: 650;
+  font-size: 24px;               /* เปลี่ยนตามต้องการ */
+  font-style: normal;
+}
+
+.password-title{
+  padding: 0px 0px 0px 40px;
+  color: #000000;
+  font-family: "Jost", sans-serif;
+  font-weight: 650;
+  font-size: 24px;               /* เปลี่ยนตามต้องการ */
+  font-style: normal;
+}
+
+.input-email{
+  width: 100%;
+  max-width: 340px;
+  padding: 12px;
+  margin: 0 auto 20px; /* กำหนด margin-bottom เท่ากัน */
+  border: 2px solid #919191;
+  border-radius: 10px;
+  display: block;
+}
+.input-password {
+  width: 100%;
+  max-width: 340px;
+  padding: 12px;
+  margin: 0 auto 20px; /* กำหนด margin-bottom เท่ากัน */
+  border: 2px solid #919191;
+  border-radius: 10px;
+  display: block;
+  margin-bottom: 55px;
+}
+
+.login-btn {
+    width: 100%;
+  max-width: 365px;
+  padding: 15px;
+  background-color: #3D3737;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 10px auto 0;
+  display: block;
+}
+
+.login-btn:hover {
+  background-color: #000000;  /* เปลี่ยนสีพื้นหลังเมื่อ hover */           /* สีตัวอักษร */
+  transform: scale(1.009);     /* ขยายเล็กน้อยให้มี effect */
+  transition: 0.3s;           /* ทำให้เปลี่ยนสี/ขยายลื่นไหล */
+  cursor: pointer;
+}
+
+
+.signup-link {
+  text-align: center;            /* จัดข้อความให้อยู่กลาง */
+  font-family: "Jost", sans-serif;
+  color: #7B7B7B;                /* สีข้อความปกติ */
+  font-size: 17px;
+  font-weight: 550;
+}
+
+.signup-link a {
+  color: #4A4A4A;                /* สีลิงก์ */        /* เอาเส้นขีดใต้ */
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.signup-link a:hover {
+  color: #020a13;                /* สีลิงก์เมื่อ hover */
+  text-decoration: underline;
+}
+

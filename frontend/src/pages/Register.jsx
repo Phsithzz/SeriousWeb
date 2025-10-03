@@ -13,7 +13,7 @@ const Register = () => {
                     <input type="text" id="name" className="border rounded-md p-1 pl-4" placeholder="Enter your Name" required/>
                 </div>
                 <div className="flex flex-col space-y-2">
-                    <label htmlFor="lastname" className="text-md font-semibold ">Lastname</label>
+                    <label htmlFor="lastname" className="text-md font-semibold focus:mx-20 my-[-20]" >Lastname</label>
                     <input type="text"  id="lastname" className="border rounded-md p-1 pl-4" placeholder="Enter your LastName" required/>
                 </div>
                  <div className="flex flex-col space-y-2">

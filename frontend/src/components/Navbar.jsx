@@ -1,12 +1,14 @@
-import React from 'react'
+
 import logo from "../assets/logo.jpg"
-import user from "../assets/user.png"
+
 //icon
 import { IoMdSearch } from "react-icons/io";
 import { RiShoppingBag2Line } from "react-icons/ri";
-
+import { FaRegUserCircle } from "react-icons/fa";
 import {Link} from "react-router-dom"
 const Navbar = () => {
+
+
   return (
     <>
     <div className=" bg-black">
@@ -43,8 +45,8 @@ const Navbar = () => {
                     </Link>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link to="user">
-                    <img src={user} alt="UserProfile" className="w-12 h-10 "/>
+                    <Link to="/register">
+                    <FaRegUserCircle className="text-white text-4xl"/>
                     
                     </Link>
                 </div>

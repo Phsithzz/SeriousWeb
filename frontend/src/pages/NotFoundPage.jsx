@@ -21,7 +21,7 @@ const NotFoundPage = () => {
 
   return (
     <>
-      <div className="bg-white flex justify-center items-center gap-4  ">
+      <div className="bg-white flex justify-center min-h-screen  items-center gap-4  ">
         <div className="">
           <img src={notfound} alt="404 Not Found " className="w-150 h-100 " />
         </div>

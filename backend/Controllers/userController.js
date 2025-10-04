@@ -30,8 +30,9 @@ export const register = async (req, res) => {
 
     const newuser = await userService.register(userData);
     res.status(201).json({
-      user: newuser,
-      regist: true,
+      message:"Success",
+      users:newuser,
+      regist: true
     });
   } catch (err) {
     console.log(err);

@@ -1,4 +1,4 @@
-.login-container {
+  .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -54,42 +54,28 @@ h2 {
 
 }
 
-.email-title{
-  padding: 0px 0px 0px 40px;
+.email-title,
+.password-title {
   color: #000000;
   font-family: "Jost", sans-serif;
   font-weight: 650;
-  font-size: 24px;               /* เปลี่ยนตามต้องการ */
-  font-style: normal;
-}
-
-.password-title{
-  padding: 0px 0px 0px 40px;
-  color: #000000;
-  font-family: "Jost", sans-serif;
-  font-weight: 650;
-  font-size: 24px;               /* เปลี่ยนตามต้องการ */
-  font-style: normal;
-}
-
-.input-email{
-  width: 100%;
-  max-width: 340px;
-  padding: 12px;
-  margin: 0 auto 20px; /* กำหนด margin-bottom เท่ากัน */
-  border: 2px solid #919191;
-  border-radius: 10px;
+  font-size: 24px;
+  text-align: left;
   display: block;
+  width: 100%;
+  max-width: 340px; /* เท่ากับ input */
+  margin: 0 auto 8px; /* เว้นระยะข้างล่าง */
 }
+
+.input-email,
 .input-password {
   width: 100%;
   max-width: 340px;
   padding: 12px;
-  margin: 0 auto 20px; /* กำหนด margin-bottom เท่ากัน */
   border: 2px solid #919191;
   border-radius: 10px;
   display: block;
-  margin-bottom: 55px;
+  margin: 0 auto 20px; /* margin bottom เท่ากัน */
 }
 
 .login-btn {
@@ -109,9 +95,7 @@ h2 {
 
 .login-btn:hover {
   background-color: #000000;  /* เปลี่ยนสีพื้นหลังเมื่อ hover */           /* สีตัวอักษร */
-  transform: scale(1.009);     /* ขยายเล็กน้อยให้มี effect */
-  transition: 0.3s;           /* ทำให้เปลี่ยนสี/ขยายลื่นไหล */
-  cursor: pointer;
+
 }
 
 

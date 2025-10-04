@@ -15,15 +15,15 @@ const Product = () => {
     setProducts(res.data); 
   };
   return (
-    <><div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <><div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ">
       {products.map((product) => (
        
-          <div key={product.product_id}className="flex flex-col   space-y-2 p-4 shadow-md  rounded-md ">
+          <div key={product.product_id}className="flex flex-col hover:border transition-all ease-in  space-y-2 p-4  ">
             <div className="flex justify-center items-center  ">
               <img
                 src={`${import.meta.env.VITE_API}/img_basketball/${product.image_filename}.jpg`}
                 alt={product.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover cursor-pointer"
               />
             </div>
             <div className="flex space-y-2 flex-col">
@@ -33,7 +33,7 @@ const Product = () => {
               <p className="text-xl font-semibold">
                 {product.name}
               </p>
-              <p className="text-md">{product.description}</p>
+              <p className="text-md font-semibold">{product.description}</p>
               <p className="text-md font-semibold">{product.price} Baht</p>
             </div>
           </div>

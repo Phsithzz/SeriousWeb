@@ -155,7 +155,7 @@ const Register = () => {
             </p>
           </form>
 
-          <Link to="/home" className="cursor-pointer">
+          <Link to="/" className="cursor-pointer">
             <RxCross2 className="absolute top-2 right-2  cursor-pointer text-[#7f7f7f] hover:text-[#b80000] text-2xl" />
           </Link>
         </div>

@@ -19,7 +19,7 @@ function Login() {
       setLogin(res.data.login)
       setMessage(res.data.message)
       if(res.data.login === true){
-        navigate("/home")
+        navigate("/")
       }
     } catch (err) {
       console.log(err)

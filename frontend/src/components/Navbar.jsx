@@ -22,12 +22,12 @@ const Navbar = () => {
                   Home
                 </p>
               </Link>
-              <Link to="products">
+              <Link to="/products">
                 <p className="text-white text-xl font-semibold cursor-pointer">
                   Products
                 </p>
               </Link>
-              <Link to="brands">
+              <Link to="/brands">
                 <p className="text-white text-xl font-semibold cursor-pointer">
                   Brands
                 </p>

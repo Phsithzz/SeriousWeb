@@ -3,6 +3,8 @@ import Navbar from "../components/Navbar";
 import Category from "../components/Category";
 import Product from "../components/Product";
 import Hero from "../components/Hero";
+import { Outlet } from "react-router-dom";
+
 const LayoutHome = () => {
   return (
     <>
@@ -17,7 +19,7 @@ const LayoutHome = () => {
           <Hero/>
           <div className="mt-6">
             
-          <Product />
+          <Outlet />
           </div>
         </div>
       </div>

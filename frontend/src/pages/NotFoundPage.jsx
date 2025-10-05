@@ -17,7 +17,7 @@ const NotFoundPage = () => {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setLoading(false);
-    navigate("/home");
+    navigate("/");
   };
 
   return (

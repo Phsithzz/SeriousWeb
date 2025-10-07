@@ -25,7 +25,7 @@ app.use(
     credentials: true,
   })
 );
-app.use("/img_basketball",express.static("img_basketball"))
+app.use("/img_products",express.static("img_products"))
 app.use(bodyParser.json());
 app.use(cookieParser());
 //

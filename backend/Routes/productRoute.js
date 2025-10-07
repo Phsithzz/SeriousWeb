@@ -4,6 +4,8 @@ import * as productController from "../Controllers/productController.js";
 const router = express.Router();
 
 router.post("/products", productController.createProduct);
+router.get("/products/:id",productController.getProductId)
+router.get("/products/type/:description", productController.getProductType);
 router.get("/products", productController.getProduct);
 router.put("/products/:id", productController.updateProduct);
 router.delete("/products/:id", productController.deleteProduct);

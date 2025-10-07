@@ -1,52 +1,60 @@
-import { useEffect, useState } from "react";
-import * as product from "../function/product.js";
-import { Link } from "react-router-dom";
+import React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 import { LuMousePointerClick } from "react-icons/lu";
 import { BsCartPlus } from "react-icons/bs";
-const Product = () => {
-  const [products, setProducts] = useState([]);
+import * as products from "../function/product.js";
+import { Link } from "react-router-dom";
+const ProductCategory = ({ category }) => {
+  const [product, setProduct] = useState([]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [category]);
+
   const loadData = async () => {
-    const res = await product.getProduct();
-    console.log("API response:", res); // ดู object ทั้งหมด
-    console.log("res.data:", res.data); // ดูว่า res.data เป็นอะไร
-    setProducts(res.data);
+    try {
+      const res = await products.getProductType(category);
+      console.log("API response:", res); // ดู object ทั้งหมด
+      console.log("res.data:", res.data); // ดูว่า res.data เป็นอะไร
+      setProduct(res.data);
+    } catch (err) {
+      console.log(err);
+    }
   };
   return (
     <>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ">
-        {products.map((product) => (
+        {product.map((cate) => (
           <div
-            key={product.product_id}
+            key={cate.product_id}
             className="flex flex-col hover:border transition-all ease-in  space-y-2 p-4  "
           >
             <div className="flex justify-center items-center  ">
               <img
-                src={`${import.meta.env.VITE_API}/img_products/${
-                  product.image_filename
-                }.jpg`}
-                alt={product.name}
+                src={`${
+                  import.meta.env.VITE_API
+                }/img_products/${cate.image_filename}.jpg`}
+                alt={cate.name}
                 className="w-full h-full object-cover cursor-pointer"
               />
             </div>
             <div className="flex space-y-2 flex-col">
-              <p className="text-xl font-semibold">{product.brand}</p>
-              <p className="text-xl font-semibold">{product.name}</p>
-              <p className="text-md font-semibold">{product.description}</p>
-              
-              <div className="flex flex-wrap items-center justify-between">
+              <p className="text-xl font-semibold">{cate.brand}</p>
+              <p className="text-xl font-semibold">{cate.name}</p>
+              <p className="text-md font-semibold">{cate.description}</p>
+
+              <div className="flex justify-between flex-wrap items-center ">
                 <p className="text-md tracking-wide font-semibold">
                   {new Intl.NumberFormat("th-TH", {
                     style: "currency",
                     currency: "THB",
                     minimumFractionDigits: 0,
-                  }).format(product.price)}
+                  }).format(cate.price)}
                 </p>
+
                 <div className="flex flex-wrap items-center gap-4">
-                  <Link to={`/products/${product.product_id}`}>
+                  <Link to={`/products/${cate.product_id}`}>
                     <button
                       type="button"
                       className="flex items-center rounded-lg bg-black gap-2 hover:text-black shadow-2xl hover:border transition-all ease-in duration-200 cursor-pointer font-medium hover:bg-white text-white p-2 "
@@ -76,4 +84,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default ProductCategory;

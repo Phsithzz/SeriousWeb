@@ -37,7 +37,7 @@ function Login() {
     <div className="login-container">
       <div className="login-box">
         <div className="close-btn-area">
-          <Link to="/home">
+          <Link to="/">
             <span className="close-btn">&times;</span>
           </Link>
         </div>

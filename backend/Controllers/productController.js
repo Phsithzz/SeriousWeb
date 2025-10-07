@@ -15,6 +15,7 @@ export const createProduct = async (req, res) => {
 };
 
 export const getProduct = async (req, res) => {
+  console.log("/products is request")
   try {
     const product = await productService.getProduct();
     res.status(200).json(product);
@@ -26,6 +27,36 @@ export const getProduct = async (req, res) => {
     });
   }
 };
+
+export const getProductId = async(req,res)=>{
+  console.log("/product/:id is request")
+  try {
+    const productId = req.params.id
+    const product = await productService.getProductId(productId)
+    res.status(200).json(product)
+  } catch (err) {
+    console.log(err)  
+    res.status(500).json({
+      message:"Server error getProductId",
+      error:err.message
+    })
+    
+  }
+}
+
+export const getProductType = async(req,res)=>{
+  try {
+    const {description} = req.params
+    const des = await productService.getProductType(description)
+    res.status(200).json(des)
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      message:"Server error getProductType"
+    })
+    
+  }
+}
 
 export const updateProduct = async (req, res) => {
   try {

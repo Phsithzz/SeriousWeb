@@ -34,6 +34,21 @@ export const getProduct = async () => {
   return rows;
 };
 
+export const getProductId = async(productId)=>{
+  const {rows} = await query("SELECT * FROM products WHERE  product_id=$1",
+    [productId]
+  )
+  return rows[0]
+}
+
+export const getProductType = async(description)=>{
+
+  const {rows} = await query("SELECT * FROM products WHERE description=$1",
+    [description]
+  )
+  return rows
+}
+
 export const updateProduct = async (productId, productData) => {
   const {
     name,

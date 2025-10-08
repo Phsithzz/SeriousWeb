@@ -44,7 +44,8 @@ const Product = () => {
               {group.items.map((product) => (
                 <div
                   key={product.product_id}
-                  className="flex flex-col hover:border transition-all ease-in space-y-2 p-4"
+                  className="flex flex-col hover:border rounded-md  shadow-xl space-y-2 p-4 transition-transform duration-300 ease-in-out overflow-hidden
+             hover:scale-115"
                 >
                   <div className="flex justify-center items-center">
                     <img
@@ -52,8 +53,7 @@ const Product = () => {
                         product.image_filename
                       }.jpg`}
                       alt={product.name}
-                      className="w-full h-full object-cover cursor-pointer  transition-transform duration-300 ease-in-out 
-             hover:scale-125"
+                      className="w-full h-full object-cover cursor-pointer  "
                     />
                   </div>
                   <div className="flex flex-col space-y-2">

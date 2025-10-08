@@ -8,26 +8,23 @@ const imageList = [
   {
     id: 1,
     image: hero1,
-    title:"ADIDAS"
-  
+    title: "ADIDAS",
   },
   {
     id: 2,
     image: hero2,
-    title:"NIKE"
-
+    title: "NIKE",
   },
   {
     id: 3,
     image: hero3,
-    title:"NEWBALANCE"
-
+    title: "NEWBALANCE",
   },
-   {
+  {
     id: 4,
     image: hero4,
-    title:"PUMA"
-}
+    title: "PUMA",
+  },
 ];
 
 const Hero = () => {
@@ -47,19 +44,18 @@ const Hero = () => {
 
   return (
     <div className="w-full h-[200px] p-8">
-  <Slider {...settings}>
-    {imageList.map((item) => (
-      <div key={item.id} className="relative w-full h-[200px]">
-        <img
-          src={item.image}
-          alt={item.title}
-          className="w-full h-full object-contain rounded-lg"
-        />
-      </div>
-    ))}
-  </Slider>
-</div>
-
+      <Slider {...settings}>
+        {imageList.map((item) => (
+          <div key={item.id} className="relative w-full h-[200px]">
+            <img
+              src={item.image}
+              alt={item.title}
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </div>
+        ))}
+      </Slider>
+    </div>
   );
 };
 

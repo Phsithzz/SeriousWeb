@@ -96,6 +96,7 @@ const ProductDetail = () => {
       <div className="">
         <Navbar />
       </div>
+
       <div className="w-full bg-white">
         <div className="max-w-5xl mx-auto mt-8 px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -152,7 +153,6 @@ const ProductDetail = () => {
                         <p className="text-md font-normal">
                           {shop.description}
                         </p>
-                        
                       </div>
                     ))}
                   </motion.div>
@@ -210,19 +210,20 @@ const ProductDetail = () => {
                   type="button"
                   className="font-semibold text-md text-white bg-black px-2 hover:bg-white hover:text-black border transition-all ease-in duration-200 py-4 rounded-full cursor-pointer"
                 >
-                  <span >เพิ่มในตระกร้า</span>
+                  <span>เพิ่มในตระกร้า</span>
                 </button>
                 <button
                   type="button"
                   className="font-semibold group text-md text-black hover:text-white hover:bg-black transition-all ease-in duration-200 bg-white px-2 py-4 gap-2 rounded-full cursor-pointer border flex justify-center items-center"
                 >
                   <span>รายการโปรด</span>
-                  <FaRegHeart className="group-hover:text-red-500"/>
+                  <FaRegHeart className="group-hover:text-red-500" />
                 </button>
               </div>
             </div>
           </div>
         </div>
+
         <div className="max-w-7xl mx-auto mt-8 px-4 md:px-8 mb-20">
           <h1 className="text-2xl font-bold text-left">สินค้าที่คุณอาจสนใจ</h1>
           <div className="mt-4 ">

@@ -10,7 +10,6 @@ import { useState } from "react";
 import { BarLoader } from "react-spinners";
 import { Link } from "react-router-dom";
 const NotFoundPage = () => {
-  
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const loadingSpin = async () => {
@@ -36,21 +35,21 @@ const NotFoundPage = () => {
           </div>
 
           <button
-  onClick={loadingSpin}
-  disabled={loading}
-  className="bg-black w-fit flex justify-center gap-2 items-center h-10 p-4 rounded-full group transition ease-in duration-400 hover:bg-white hover:border"
->
-  {loading ? (
-    <BarLoader color="white" />
-  ) : (
-    <>
-      <GoArrowLeft className="text-white text-2xl group-hover:text-black" />
-      <span className="text-white text-lg font-semibold group-hover:text-black">
-        Go Home
-      </span>
-    </>
-  )}
-</button>
+            onClick={loadingSpin}
+            disabled={loading}
+            className="bg-black w-fit flex justify-center gap-2 items-center h-10 p-4 rounded-full group transition ease-in duration-400 hover:bg-white hover:border"
+          >
+            {loading ? (
+              <BarLoader color="white" />
+            ) : (
+              <>
+                <GoArrowLeft className="text-white text-2xl group-hover:text-black" />
+                <span className="text-white text-lg font-semibold group-hover:text-black">
+                  Go Home
+                </span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </>

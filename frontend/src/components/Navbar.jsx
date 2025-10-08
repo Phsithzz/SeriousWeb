@@ -98,21 +98,19 @@ const Navbar = () => {
                 {isMegaProduct && (
                   <div className="absolute left-1/2 top-full -translate-x-1/2 w-64 bg-white text-black shadow-lg p-4 flex flex-col gap-2 z-50">
                     {category.map((cate, index) => (
-                    
-                        <Link
-                          key={cate}
-                          to={`/products/type/${cate.toLowerCase()}`}
-                          className="flex items-center gap-2 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
-                          onClick={()=>setMegaProduct(false)}
-                        >
-                          <img
-                            src={imageListCate[index]?.image}
-                            alt={cate}
-                            className="w-16 h-16 object-contain"
-                          />
-                          <span className="font-medium">{cate}</span>
-                        </Link>
-              
+                      <Link
+                        key={cate}
+                        to={`/products/type/${cate.toLowerCase()}`}
+                        className="flex items-center gap-2 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
+                        onClick={() => setMegaProduct(false)}
+                      >
+                        <img
+                          src={imageListCate[index]?.image}
+                          alt={cate}
+                          className="w-16 h-16 object-contain"
+                        />
+                        <span className="font-medium">{cate}</span>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -136,7 +134,7 @@ const Navbar = () => {
                       <Link
                         key={brand}
                         to={`/products/brand/${brand.toLowerCase()}`}
-                        onClick={()=>setMegaBrand(false)}
+                        onClick={() => setMegaBrand(false)}
                         className="flex items-center gap-2 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
                       >
                         <img

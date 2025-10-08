@@ -52,9 +52,9 @@ const App = () => {
               element={<ProductBrand brand="NewBalance" />}
             />
           </Route>
-          
+
           <Route path="products" element={<LayoutProduct />} />
-          <Route path="brands" element={<LayoutBrand/>}/>
+          <Route path="brands" element={<LayoutBrand />} />
           <Route path="products/:id" element={<ProductDetail />} />
 
           <Route path="/register" element={<Register />} />

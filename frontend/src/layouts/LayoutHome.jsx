@@ -15,10 +15,9 @@ const LayoutHome = () => {
           <Category />
         </div>
         <div className="flex flex-col space-y-10 p-4 w-[85%] ">
-          <Hero/>
+          <Hero />
           <div className="mt-6">
-            
-          <Outlet />
+            <Outlet />
           </div>
         </div>
       </div>

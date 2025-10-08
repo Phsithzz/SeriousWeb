@@ -30,7 +30,9 @@ const AllProductBrand = () => {
         group.items.length > 0 ? (
           <div key={group.brand}>
             <div className="p-4">
-            <h1 className="text-3xl text-left font-bold mb-4 bg-black text-white w-fit p-4 rounded-xl transitio ease-in duration-200 hover:bg-white hover:border-2 cursor-pointer hover:text-black">{group.brand}</h1>
+              <h1 className="text-3xl text-left font-bold mb-4 bg-black text-white w-fit p-4 rounded-xl transitio ease-in duration-200 hover:bg-white hover:border-2 cursor-pointer hover:text-black">
+                {group.brand}
+              </h1>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {group.items.map((product) => (
@@ -40,7 +42,9 @@ const AllProductBrand = () => {
                 >
                   <div className="flex justify-center items-center">
                     <img
-                      src={`${import.meta.env.VITE_API}/img_products/${product.image_filename}.jpg`}
+                      src={`${import.meta.env.VITE_API}/img_products/${
+                        product.image_filename
+                      }.jpg`}
                       alt={product.name}
                       className="w-full h-full object-cover cursor-pointer"
                     />
@@ -48,7 +52,9 @@ const AllProductBrand = () => {
                   <div className="flex flex-col space-y-2">
                     <p className="text-xl font-semibold">{product.brand}</p>
                     <p className="text-xl font-semibold">{product.name}</p>
-                    <p className="text-md font-semibold">{product.description}</p>
+                    <p className="text-md font-semibold">
+                      {product.description}
+                    </p>
 
                     <div className="flex flex-wrap items-center justify-between">
                       <p className="text-md tracking-wide font-semibold">

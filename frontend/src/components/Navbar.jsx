@@ -60,7 +60,7 @@ const imageListCate = [
     title: "FlipFlops",
   },
 ];
-const brands = ["Adidas", "Nike", "Puma", "NewBalance"];
+const brands = ["Adidas", "Nike", "NewBalance", "Puma"];
 const category = ["Sneaker", "Football", "Basketball", "FlipFlops"];
 const Navbar = () => {
   const [isMegaBrand, setMegaBrand] = useState(false);

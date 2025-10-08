@@ -1,7 +1,6 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import Category from "../components/Category";
-import Product from "../components/Product";
 import Hero from "../components/Hero";
 import { Outlet } from "react-router-dom";
 

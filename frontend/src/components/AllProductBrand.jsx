@@ -4,42 +4,33 @@ import { Link } from "react-router-dom";
 import { LuMousePointerClick } from "react-icons/lu";
 import { BsCartPlus } from "react-icons/bs";
 
-const Product = () => {
+const AllProductBrand = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const loadData = async () => {
-      const res = await productAPI.getProduct(); 
+      const res = await productAPI.getProduct(); // ดึงสินค้าทั้งหมด
       setProducts(res.data);
     };
     loadData();
   }, []);
 
+  // กำหนดลำดับแบรนด์
+  const brandOrder = ["Adidas", "Nike", "Puma", "Newbalance"];
 
-  const categoryDisplayMap = {
-    Sneaker: "Sneaker",
-    Football: "Football",
-    Basketball: "Basketball",
-    Slipper: "Slide & Flip Flops",
-  };
-
-
-  const categoryOrder = ["Sneaker", "Football", "Basketball", "Slipper"];
-
-  const productsByCategory = categoryOrder.map((cat) => ({
-    category: cat, 
-    displayName: categoryDisplayMap[cat], 
-    items: products.filter((p) => p.description === cat),
+  // จัดกลุ่มสินค้าตามแบรนด์
+  const productsByBrand = brandOrder.map((brand) => ({
+    brand,
+    items: products.filter((p) => p.brand === brand),
   }));
 
   return (
     <div className="p-6 space-y-12">
-      {productsByCategory.map((group) =>
+      {productsByBrand.map((group) =>
         group.items.length > 0 ? (
-          <div key={group.category}>
+          <div key={group.brand}>
             <div className="p-4">
-            <h1 className="text-3xl text-left font-bold mb-4 bg-black text-white w-fit p-4 rounded-xl transitio ease-in duration-200 hover:bg-white hover:border-2 cursor-pointer hover:text-black">{group.displayName}</h1>
-
+            <h1 className="text-3xl text-left font-bold mb-4 bg-black text-white w-fit p-4 rounded-xl transitio ease-in duration-200 hover:bg-white hover:border-2 cursor-pointer hover:text-black">{group.brand}</h1>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {group.items.map((product) => (
@@ -91,4 +82,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default AllProductBrand;

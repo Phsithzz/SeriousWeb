@@ -26,6 +26,7 @@ app.use(
   })
 );
 app.use("/img_products",express.static("img_products"))
+app.use("/img_productshow",express.static("img_productshow"))
 app.use(bodyParser.json());
 app.use(cookieParser());
 //

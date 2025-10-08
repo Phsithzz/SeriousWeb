@@ -28,6 +28,36 @@ export const getProduct = async (req, res) => {
   }
 };
 
+export const getProductShow = async(req,res) =>{
+  console.log("GET /products/show is request")
+  try {
+    const product = await productService.getProductShow()
+    res.status(200).json(product)
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      message:"Server error getProductShow",
+      error:err.message
+    })
+    
+  }
+}
+
+export const getProductBrand = async(req,res)=>{
+  console.log("/GET /products/brand/:brand is request")
+  try {
+    const {brand} = req.params
+    const productBrand = await productService.getProductBrand(brand)
+    res.status(200).json(productBrand)
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      message:"Server error getProductBrand"
+    })
+    
+  }
+}
+
 export const getProductId = async(req,res)=>{
   console.log("/product/:id is request")
   try {

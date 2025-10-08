@@ -15,8 +15,8 @@ const ProductCategory = ({ category }) => {
   const loadData = async () => {
     try {
       const res = await products.getProductType(category);
-      console.log("API response:", res); // ดู object ทั้งหมด
-      console.log("res.data:", res.data); // ดูว่า res.data เป็นอะไร
+      console.log("API response:", res); 
+      console.log("res.data:", res.data); 
       setProduct(res.data);
     } catch (err) {
       console.log(err);
@@ -24,12 +24,18 @@ const ProductCategory = ({ category }) => {
   };
   return (
     <>
+        <div className="p-2">
+
+        <h1 className="text-3xl text-left font-bold mb-4 bg-black text-white w-fit p-4 rounded-xl transitio ease-in duration-200 hover:bg-white hover:border-2 cursor-pointer hover:text-black">{category}</h1>
+        </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ">
+
         {product.map((cate) => (
           <div
             key={cate.product_id}
             className="flex flex-col hover:border transition-all ease-in  space-y-2 p-4  "
           >
+          
             <div className="flex justify-center items-center  ">
               <img
                 src={`${

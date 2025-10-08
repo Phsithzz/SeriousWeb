@@ -26,7 +26,7 @@ const Category = () => {
               Basketball
             </Link>
              <Link
-              to="/products/type/slipper"
+              to="/products/type/flipflops"
               className="text-xl font-semibold cursor-pointer"
             >
              Slide & Flip Flops

@@ -30,20 +30,39 @@ export const createProduct = async (productData) => {
 };
 
 export const getProduct = async () => {
-  const { rows } = await query("SELECT * FROM products");
+  const { rows } = await query("SELECT * FROM products ORDER BY brand ASC, name ASC");
   return rows;
 };
 
+export const getProductShow = async()=>{
+  const {rows} = await query("SELECT * FROM products WHERE category_name='show' ORDER BY brand ASC, name ASC")
+  return rows
+}
+
+export const getProductBrand = async(brand)=>{
+  const {rows} = await query("SELECT * FROM products WHERE brand=$1",[brand])
+  return rows
+}
+
 export const getProductId = async(productId)=>{
-  const {rows} = await query("SELECT * FROM products WHERE  product_id=$1",
+  const {rows:productRows} = await query("SELECT * FROM products WHERE  product_id=$1",
     [productId]
   )
-  return rows[0]
+
+  const product =productRows[0]
+
+  const {rows:variantRows} = await query(
+    "SELECT variant_id,size,color,stock_quantity,price FROM product_variants WHERE product_id = $1 ORDER BY  size ASC"
+    ,[productId]
+  )
+  product.variants = variantRows
+
+  return product
 }
 
 export const getProductType = async(description)=>{
 
-  const {rows} = await query("SELECT * FROM products WHERE description=$1",
+  const {rows} = await query("SELECT * FROM products WHERE description=$1  ORDER BY brand ASC, name ASC",
     [description]
   )
   return rows

@@ -40,7 +40,7 @@ const Product = () => {
                 {group.displayName}
               </h1>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 space-y-8 mx-4 my-6">
               {group.items.map((product) => (
                 <div
                   key={product.product_id}

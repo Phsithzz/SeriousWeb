@@ -52,7 +52,8 @@ const Product = () => {
                         product.image_filename
                       }.jpg`}
                       alt={product.name}
-                      className="w-full h-full object-cover cursor-pointer"
+                      className="w-full h-full object-cover cursor-pointer  transition-transform duration-300 ease-in-out 
+             hover:scale-125"
                     />
                   </div>
                   <div className="flex flex-col space-y-2">

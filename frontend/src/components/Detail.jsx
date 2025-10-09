@@ -18,31 +18,35 @@ const Detail = ({ onCancel }) => {
   return (
     <>
       <div className="m-30 w-full max-w-3xl bg-white rounded-4xl shadow-xl mx-auto overflow-hidden">
-        <div className="flex flex-col space-y-4 p-6">
-          <div className="flex justify-between  relative">
-            <div className="flex flex-wrap gap-4">
+        <div className="flex  flex-col space-y-4 p-6">
+
+          <div className="flex  flex-col relative">
+
+            <div className="flex items-center flex-wrap gap-4">
               <img
                 src={`${import.meta.env.VITE_API}/img_products/${
                   product.image_filename
                 }.jpg`}
                 alt={product.name}
-                className="w-full md:w-1/2 h-auto object-cover rounded-xl"
+                className="w-20 h-30   object-contain rounded-xl"
               />
-              <div className="flex flex-col">
-                <p className="text-xl font-semibold">{product.name}</p>
-                <p className="text-xl font-medium">
+              <div className="flex item-center flex-col">
+                <p className="text-lg font-semibold">{product.name}</p>
+                <p className="text-lg font-medium">
                   {new Intl.NumberFormat("th-TH", {
                     style: "currency",
                     currency: "THB",
                     minimumFractionDigits: 0,
                   }).format(product.price)}
                 </p>
-                <div className="flex flex-col mt-6 space-y-2">
-            <h1 className="text-lg font-semibold">รายละเอียดสินค้า</h1>
-            <p className="text-lg font-semibold">{product.detail} </p>
-          </div>
+
+                
               </div>
             </div>
+            <div className="flex flex-col mt-6 space-y-2">
+            <h1 className="text-md font-semibold">รายละเอียดสินค้า</h1>
+            <p className="text-md font-semibold">{product.detail} </p>
+          </div>
             <div className="absolute top-0 right-0">
               <button type="button" onClick={onCancel}>
                 <RxCross2 className="cursor-pointer font-bold hover:text-red-500" size={30} />

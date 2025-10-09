@@ -12,7 +12,7 @@ import { BsCartPlus } from "react-icons/bs";
 import { CiStar } from "react-icons/ci";
 import { motion } from "framer-motion";
 import Slider from "react-slick";
-
+import Detail from "../components/Detail.jsx";
 const shipping = [
   {
     id: 1,
@@ -41,6 +41,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [showProduct, setShowProduct] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [openDetail,setOpenDetail] = useState(false)
 
   const RandomProduct = (array) => {
     return array
@@ -89,6 +90,7 @@ const ProductDetail = () => {
       },
     ],
   };
+
   if (!product) return <p>Loading...</p>;
 
   return (
@@ -171,10 +173,14 @@ const ProductDetail = () => {
                 }).format(product.price)}
               </p>
 
-              <button className="text-left font-semibold underline cursor-pointer ">
+              <button onClick={()=>setOpenDetail(true)} className="text-left font-semibold underline cursor-pointer ">
                 รายละเอียดสินค้า
               </button>
-
+                {openDetail &&(
+                  <div className="fixed top-0 left-0 w-full h-full backdrop-blur-xs flex justify-center items-center z-50">
+                    <Detail onCancel={()=>setOpenDetail(false)}/>
+                  </div>
+                )}
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <p className="font-semibold text-xl">เลือกไซส์</p>
@@ -186,7 +192,7 @@ const ProductDetail = () => {
                     <span>คำแนะนำไซต์</span>
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2 ">
+                <div className="grid grid-cols-3 gap-2 ">
                   {product.variants.map((v) => (
                     <button
                       type="button"

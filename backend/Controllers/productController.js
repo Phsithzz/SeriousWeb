@@ -137,8 +137,12 @@ export const deleteProduct = async (req, res) => {
 export const searchProduct = async (req, res) => {
   try {
     const searchTerm = req.query.q;
+    if(!searchTerm){
+      return res.json([])
+    }
+    
     const product = await productService.searchProduc(searchTerm);
-
+    
     res.status(200).json(product);
   } catch (err) {
     console.log(err);

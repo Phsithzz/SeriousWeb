@@ -19,3 +19,7 @@ export const getProductType = async(description)=>{
 export const getProductId = async(productId) =>{
     return await axios.get(`${import.meta.env.VITE_API}/products/${productId}`)
 }
+
+export const searchProduct = async(searchTerm)=>{
+    return await axios.get(`${import.meta.env.VITE_API}/products/search?q=${searchTerm}`)
+}

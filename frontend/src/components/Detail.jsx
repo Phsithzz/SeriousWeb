@@ -39,7 +39,7 @@ const Detail = ({ onCancel }) => {
                 </p>
                 <div className="flex flex-col mt-6 space-y-2">
             <h1 className="text-lg font-semibold">รายละเอียดสินค้า</h1>
-            <p>(ต้องเชื่อมกับข้อความในฐานข้อมูล)</p>
+            <p className="text-lg font-semibold">{product.detail} </p>
           </div>
               </div>
             </div>

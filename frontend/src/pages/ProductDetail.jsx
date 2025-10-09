@@ -205,7 +205,7 @@ const ProductDetail = () => {
                               : "hover:border-black hover:border-2"
                           }`}
                     >
-                      {v.size}
+                      {v.size} US
                     </button>
                   ))}
                 </div>

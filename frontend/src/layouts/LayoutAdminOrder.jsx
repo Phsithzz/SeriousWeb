@@ -14,7 +14,7 @@ const LayoutAdminOrder = () => {
       setTableData(res.data);
     } catch (err) {
       console.log(err);
-      setError(err.messaage);
+      setError(err.response?.data?.message || "Unable to load orders");
     }
   };
 
@@ -32,7 +32,6 @@ const LayoutAdminOrder = () => {
           <NavbarAdmin showAddButton={false} onSearch={setSearchTerm} />
           <OrderTable
             tableData={tableData}
-            setTableData={setTableData}
             error={error}
             searchTerm={searchTerm}
           />

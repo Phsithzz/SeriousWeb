@@ -1,234 +1,117 @@
 import * as cartService from "../Services/cartService.js";
-import { query } from "../Config/database.js";
+import {
+  cleanText,
+  isValidEmail,
+  normalizeEmail,
+  parseNonNegativeNumber,
+  parsePositiveInteger,
+} from "../Utils/validation.js";
 
-//เอาไว้ใช้เช็คว่า user มีตระกร้าอยู่่แล้วรึป่าว
 export const checkCart = async (req, res) => {
-  console.log("POST /cart/checkcart is request");
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.json({
-        error: true,
-        errormessage: "User Email is required",
-      });
-    }
-
-    const newcart = await cartService.checkCart(email);
-    if (newcart != null) {
-      return res.json({
-        cartExist: true,
-        cart_id: newcart.cart_id,
-      });
-    } else {
-      return res.json({
-        cartExist: false,
-      });
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error checkCart",
-      error: err.message,
-    });
-  }
+  const cart = await cartService.checkCart(req.user.email);
+  return res.status(200).json({ cartExist: Boolean(cart), cart_id: cart?.cart_id });
 };
 
-//เอาไว้เพิ่มข้อมูลลงในตระกร้าของuser แต่ละคน และมีการเพิ่ม ปริมาณสินค้าถ้าในตระกร้ามีสินค้าอยู่แล้ว
 export const addCart = async (req, res) => {
-  console.log("POST /cart/addcart is request");
-  try {
-    const cartData = req.body;
-    if (cartData.customer_email == null) {
-      return res.json({
-        cartOK: false,
-        messageAddCart: "Customer Email is required",
-      });
-    }
-    const newcart = await cartService.addCart(cartData);
-    res.json({ cartOK: true, messageAddCart: newcart });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error addCart",
-      error: err.message,
-      cartOK: false,
-    });
+  const variantId = parsePositiveInteger(req.body.variant_id);
+  const quantity = parsePositiveInteger(req.body.quantity, { max: 20 });
+  if (!variantId || !quantity) {
+    return res.status(400).json({ cartOK: false, message: "Invalid variant or quantity" });
   }
+
+  const result = await cartService.addCart({
+    customer_email: req.user.email,
+    variant_id: variantId,
+    quantity,
+  });
+  if (result.error) return res.status(400).json({ cartOK: false, message: result.error });
+  return res.status(201).json({ cartOK: true, messageAddCart: result.cart });
 };
 
-//เอาไว้ใช้ตอนโชว์สินค้าของลูกค้าแต่ละคน
-export const getCart = async (req, res) => {
-  console.log("GET /cart/:customerEmail");
-  try {
-    const { customerEmail } = req.params;
-    const cart = await cartService.getCart(customerEmail);
-    res.status(200).json(cart);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error getCart",
-      error: err.message,
-    });
-  }
-};
+export const getCart = async (req, res) =>
+  res.status(200).json(await cartService.getCart(req.user.email));
 
-//เอาไว้โชว์สรุปข้อมูลการสั่งซื้อสินค้าของลูกค้า
-export const getCartOrder = async (req, res) => {
-  console.log("GET /cart/order/:customerEmail");
-  try {
-    const { customerEmail } = req.params;
-    const cart = await cartService.getCartOrder(customerEmail);
-    res.status(200).json(cart);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server erorr getCartOrder",
-    });
-  }
-};
-//เอาไว้ใช้อัพเดทปริมาณสินค้าในตระกร้า
+export const getCartOrder = async (req, res) =>
+  res.status(200).json(await cartService.getCartOrder(req.user.email));
+
 export const updateCartQuantity = async (req, res) => {
-  try {
-    const { cartId } = req.params;
-    const { newQuantity } = req.body;
+  const cartId = parsePositiveInteger(req.params.cartId);
+  const quantity = parsePositiveInteger(req.body.newQuantity, { max: 20 });
+  if (!cartId || !quantity) return res.status(400).json({ message: "Invalid cart or quantity" });
 
-    if (newQuantity == null || newQuantity < 1) {
-      return res.status(400).json({ message: "Invalid quantity" });
-    }
-
-    const result = await cartService.updateCartQuantity(cartId, newQuantity);
-
-    if (!result) {
-      return res.status(404).json({ message: "Cart item not found" });
-    }
-
-    if (!result.success) {
-      return res.status(400).json({ message: result.message });
-    }
-
-    res.status(200).json(result.updatedCart);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error updateCartQuantity",
-      error: err.message,
-    });
-  }
+  const updated = await cartService.updateCartQuantity(cartId, req.user.email, quantity);
+  if (!updated) return res.status(400).json({ message: "Cart item not found or insufficient stock" });
+  return res.status(200).json(updated);
 };
 
-//เอาไว้ออัพเดต Status ของตะกร้า เมื่อผู้ใช้กดซื้อและชำระเงินสำเร็จ แล้วเพิ่มข้อมูลลงtable orders
+export const removeOwnCart = async (req, res) => {
+  const cartId = parsePositiveInteger(req.params.cartId);
+  if (!cartId) return res.status(400).json({ message: "Invalid cart id" });
+  const deleted = await cartService.removeOwnCart(cartId, req.user.email);
+  if (!deleted) return res.status(404).json({ message: "Cart item not found" });
+  return res.status(200).json({ message: "Cart item deleted" });
+};
+
 export const confirmCart = async (req, res) => {
-  console.log("PUT /cart/confirm/:customerEmail is request");
   try {
-    const { customerEmail } = req.params;
-    const { address, payment_method } = req.body;
-    const {
-      house_number,
-      village_number,
-      subdistrict,
-      district,
-      province,
-      postal_code,
-    } = address;
+    const source = req.body.address || {};
+    const address = {
+      house_number: cleanText(source.house_number, 100),
+      village_number: cleanText(source.village_number, 100),
+      subdistrict: cleanText(source.subdistrict, 100),
+      district: cleanText(source.district, 100),
+      province: cleanText(source.province, 100),
+      postal_code: cleanText(source.postal_code, 20),
+    };
+    const paymentMethod = cleanText(req.body.payment_method, 100);
+    if (Object.values(address).some((value) => !value) || !paymentMethod) {
+      return res.status(400).json({ message: "Complete address and payment method are required" });
+    }
 
-    const addressRes = await query(
-      `INSERT INTO address(house_number,village_number,subdistrict,district,province,postal_code)
-            VALUES($1,$2,$3,$4,$5,$6) 
-            RETURNING address_id`,
-      [
-        house_number,
-        village_number,
-        subdistrict,
-        district,
-        province,
-        postal_code,
-      ]
-    );
-    const addressId = addressRes.rows[0].address_id;
-
-    const order = await cartService.confirmCart(
-      customerEmail,
-      addressId,
-      payment_method
-    );
-
+    const order = await cartService.confirmCart(req.user.email, address, paymentMethod);
     if (!order) return res.status(400).json({ message: "No item to confirm" });
-
-    res.status(200).json(order);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error confirmCart",
-      error: err.message,
-    });
+    return res.status(200).json(order);
+  } catch (error) {
+    if (error.code === "INSUFFICIENT_STOCK") {
+      return res.status(409).json({ message: "One or more items have insufficient stock" });
+    }
+    console.error("checkout failed", error);
+    return res.status(500).json({ message: "Unable to complete checkout" });
   }
 };
-//C R U D
 
-//Admin use
-
-export const getAllCart = async (req, res) => {
-  console.log("GET /cart/admin is requst");
-  try {
-    const cart = await cartService.getAllCart();
-    res.status(200).json(cart);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error getAllUser",
-      error: err.message,
-    });
-  }
+const validAdminCart = (body) => {
+  const customer_email = normalizeEmail(body.customer_email);
+  const variant_id = parsePositiveInteger(body.variant_id);
+  const quantity = parsePositiveInteger(body.quantity, { max: 10_000 });
+  const price = parseNonNegativeNumber(body.price);
+  const status = body.status === true || body.status === "true";
+  return isValidEmail(customer_email) && variant_id && quantity && price !== null
+    ? { customer_email, variant_id, quantity, price, status }
+    : null;
 };
+
+export const getAllCart = async (_req, res) => res.status(200).json(await cartService.getAllCart());
+
 export const createCart = async (req, res) => {
-  console.log("POST /cart/admin is request");
-  try {
-    const cartData = req.body;
-    const newcart = await cartService.createCart(cartData);
-    res.status(201).json(newcart);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error createCart",
-      error: err.message,
-    });
-  }
+  const data = validAdminCart(req.body);
+  if (!data) return res.status(400).json({ message: "Invalid cart data" });
+  return res.status(201).json(await cartService.createCart(data));
 };
 
 export const updateCart = async (req, res) => {
-  console.log("PUT /cart/admin/:cartId is request");
-  try {
-    const { cartId } = req.params;
-    const cartData = req.body;
-    const updateCart = await cartService.updateCart(cartId, cartData);
-    if (!updateCart) {
-      return res.status(400).json({ message: "Cart not found" });
-    }
-    res.status(200).json(updateCart);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error updateCart",
-      error: err.message,
-    });
-  }
-};
-export const removeCart = async (req, res) => {
-  console.log("DELETE /cart/admin/:cartId");
-  try {
-    const { cartId } = req.params;
-    const deleted = await cartService.removeCart(cartId);
-    if (!deleted) {
-      return res.status(404).json({ message: "Cart not Found" });
-    }
-    res.status(200).json({ message: "Cart deleted" });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error removeCart",
-      error: err.message,
-    });
-  }
+  const cartId = parsePositiveInteger(req.params.cartId);
+  const data = validAdminCart(req.body);
+  if (!cartId || !data) return res.status(400).json({ message: "Invalid cart data" });
+  const updated = await cartService.updateCart(cartId, data);
+  if (!updated) return res.status(404).json({ message: "Cart not found" });
+  return res.status(200).json(updated);
 };
 
-//Admin use
+export const removeCart = async (req, res) => {
+  const cartId = parsePositiveInteger(req.params.cartId);
+  if (!cartId) return res.status(400).json({ message: "Invalid cart id" });
+  const deleted = await cartService.removeCart(cartId);
+  if (!deleted) return res.status(404).json({ message: "Cart not found" });
+  return res.status(200).json({ message: "Cart deleted" });
+};

@@ -35,7 +35,6 @@ const LayoutAdminVariant = () => {
     if (modalMode === "add") {
       try {
         const res = await variant.createVariant(newVariantData);
-        console.log(res.data);
         setTableData((prevData) => [...prevData, res.data]);
       } catch (err) {
         console.log(err);
@@ -46,7 +45,6 @@ const LayoutAdminVariant = () => {
           variantData.variant_id,
           newVariantData
         );
-        console.log(res.data);
         setTableData((prevData) =>
           prevData.map((variant) =>
             variant.variant_id === variantData.variant_id ? res.data : variant

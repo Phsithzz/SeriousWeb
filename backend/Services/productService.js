@@ -37,6 +37,11 @@ export const getProductAdmin = async () => {
   return rows;
 };
 
+export const getProductRecord = async (productId) => {
+  const { rows } = await query("SELECT * FROM products WHERE product_id=$1", [productId]);
+  return rows[0] || null;
+};
+
 
 export const updateProduct = async (productId, productData) => {
   
@@ -107,6 +112,8 @@ export const getProductId = async(productId)=>{
   )
 
   const product =productRows[0]
+
+  if (!product) return null;
 
   const {rows:variantRows} = await query(
     "SELECT variant_id,size,color,stock_quantity,price FROM product_variants WHERE product_id = $1 ORDER BY  size ASC"

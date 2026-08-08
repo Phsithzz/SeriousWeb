@@ -8,19 +8,14 @@ const ProductCategory = ({ category }) => {
   const [product, setProduct] = useState([]);
 
   useEffect(() => {
-    loadData();
+    let active = true;
+    products.getProductType(category)
+      .then((res) => active && setProduct(res.data))
+      .catch((err) => console.log(err));
+    return () => {
+      active = false;
+    };
   }, [category]);
-
-  const loadData = async () => {
-    try {
-      const res = await products.getProductType(category);
-      console.log("API response:", res);
-      console.log("res.data:", res.data);
-      setProduct(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
   return (
     <>
       <div className="p-2">
@@ -40,9 +35,8 @@ const ProductCategory = ({ category }) => {
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ">
         {product.map((cate) => (
-          <Link to={`/products/${cate.product_id}`}>
+          <Link key={cate.product_id} to={`/products/${cate.product_id}`}>
             <div
-              key={cate.product_id}
               className="flex flex-col   rounded-xl bg-white  hover:border hover:border-[#DCDCDC] shadow-xl space-y-2 p-4 transition-transform duration-300 ease-in-out overflow-hidden
              hover:scale-110 "
             >

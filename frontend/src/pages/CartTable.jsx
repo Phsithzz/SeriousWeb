@@ -1,6 +1,6 @@
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit } from "react-icons/fi";
-import { removeCart } from "../function/cart.js";
+import { removeCartAdmin } from "../function/cart.js";
 import { useState } from "react";
 const CartTable = ({
   tableData,
@@ -20,8 +20,7 @@ const CartTable = ({
   );
 
   const handleDelete = async (id) => {
-    console.log("Deleting cart id:", id);
-    await removeCart(id);
+    await removeCartAdmin(id);
     setTableData((prev) => prev.filter((item) => item.cart_id !== id));
   };
   return (

@@ -37,7 +37,7 @@ const Cart = () => {
     if (login && email) {
       const loadData = async () => {
         try {
-          const res = await cart.getCart(email);
+          const res = await cart.getCart();
           setCarts(res.data);
         } catch (err) {
           console.log(err);
@@ -254,7 +254,6 @@ const Cart = () => {
               <div className="flex flex-col space-y-4">
                 <div className="border-b-2 pb-4 space-y-2 border-gray-300 ">
                   {carts.map((cart) => (
-                    <>
                       <div className="flex justify-between" key={cart.cart_id}>
                         <p className="text-xs font-semibold  ">{cart.name}</p>
                         <div className="flex gap-2">
@@ -270,7 +269,6 @@ const Cart = () => {
                           </p>
                         </div>
                       </div>
-                    </>
                   ))}
                 </div>
 

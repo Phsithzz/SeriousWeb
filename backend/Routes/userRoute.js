@@ -1,31 +1,27 @@
-//import
 import express from "express";
-
 import * as userController from "../Controllers/userController.js";
-//import 
+import { requireAdmin, requireAuth } from "../Middleware/auth.js";
+import { loginRateLimit } from "../Middleware/security.js";
 
 const router = express.Router();
 
-// ----------------------
-// User Operations
-// ----------------------
-router.get("/user/info/:email", userController.getOneUser);
-router.put("/user/info/:email", userController.userEditInfo);
-router.put("/user/password/:email", userController.updatePassword);
-router.post("/user/upload", userController.uploadUser);
-router.get("/user/info", userController.getUser);
-
-// ----------------------
-// Authentication
-// ----------------------
 router.post("/user/register", userController.register);
-router.post("/user/login", userController.login);
-router.get("/user/logout", userController.logoutUser);
+router.post("/user/login", loginRateLimit, userController.login);
+router.post("/user/logout", userController.logoutUser);
 
-// ----------------------
-// Admin Operations
-// ----------------------
-router.get("/user", userController.getAllUser);
-router.put("/user/:userId", userController.updateUser);
-router.delete("/user/:userId", userController.removeUser);
+router.get("/user/info", requireAuth, userController.getUser);
+router.get("/user/me", requireAuth, userController.getOneUser);
+router.put("/user/me", requireAuth, userController.userEditInfo);
+router.put("/user/me/password", requireAuth, userController.updatePassword);
+router.post(
+  "/user/me/avatar",
+  requireAuth,
+  userController.uploadUserImage,
+  userController.uploadUser
+);
+
+router.get("/user", requireAuth, requireAdmin, userController.getAllUser);
+router.put("/user/:userId", requireAuth, requireAdmin, userController.updateUser);
+router.delete("/user/:userId", requireAuth, requireAdmin, userController.removeUser);
+
 export default router;

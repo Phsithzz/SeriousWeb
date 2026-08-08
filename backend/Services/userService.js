@@ -1,4 +1,4 @@
-import { query } from "../Config/database.js";
+import { query, withTransaction } from "../Config/database.js";
 
 import bcrypt from "bcrypt";
 
@@ -15,7 +15,7 @@ export const register = async (userData) => {
   const salt = await bcrypt.genSalt(10);
   const pwdHash = await bcrypt.hash(password, salt);
   const { rows } = await query(
-    "INSERT INTO users(name,lastname,email,passwordhash,role) VALUES($1,$2,$3,$4,'user') RETURNING *",
+    "INSERT INTO users(name,lastname,email,passwordhash,role) VALUES($1,$2,$3,$4,'user') RETURNING user_id,name,lastname,email,role",
     [name, lastname, email, pwdHash]
   );
 
@@ -32,15 +32,20 @@ export const getOneUser = async(email)=>{
 export const userEditInfo = async(originalEmail,userData)=>{
   const { name, lastname, email: newEmail } = userData;
 
-  const {rows} = await query(
-    `
-    UPDATE users
-     SET name=$1,lastname=$2,email=$3
-    WHERE email=$4
-    RETURNING*
-    `,[name,lastname,newEmail,originalEmail]
-  )
-  return rows[0]
+  return withTransaction(async (client) => {
+    const { rows } = await client.query(
+      `UPDATE users SET name=$1,lastname=$2,email=$3
+        WHERE email=$4
+        RETURNING user_id,name,lastname,email,role`,
+      [name, lastname, newEmail, originalEmail]
+    );
+    if (!rows[0]) return null;
+    if (newEmail !== originalEmail) {
+      await client.query("UPDATE cart SET customer_email=$1 WHERE customer_email=$2", [newEmail, originalEmail]);
+      await client.query("UPDATE orders SET customer_email=$1 WHERE customer_email=$2", [newEmail, originalEmail]);
+    }
+    return rows[0];
+  });
 
 }
 
@@ -79,12 +84,34 @@ export const getAllUser = async()=>{
 
 export const updateUser = async(userId,userData)=>{
   const { name, lastname,email,role} = userData
-  const {rows} = await query(`
-    UPDATE users SET name=$1,lastname=$2,email=$3,role=$4
-    WHERE user_id=$5
-    RETURNING*`,[name,lastname,email,role,userId])
-  return rows[0]
+  return withTransaction(async (client) => {
+    const { rows: currentRows } = await client.query(
+      "SELECT email FROM users WHERE user_id=$1 FOR UPDATE",
+      [userId]
+    );
+    if (!currentRows[0]) return null;
+    const originalEmail = currentRows[0].email;
+    const { rows } = await client.query(
+      `UPDATE users SET name=$1,lastname=$2,email=$3,role=$4
+        WHERE user_id=$5
+        RETURNING user_id,name,lastname,email,role`,
+      [name, lastname, email, role, userId]
+    );
+    if (email !== originalEmail) {
+      await client.query("UPDATE cart SET customer_email=$1 WHERE customer_email=$2", [email, originalEmail]);
+      await client.query("UPDATE orders SET customer_email=$1 WHERE customer_email=$2", [email, originalEmail]);
+    }
+    return rows[0];
+  });
 }
+
+export const getUserById = async (userId) => {
+  const { rows } = await query(
+    "SELECT user_id,name,lastname,email,role FROM users WHERE user_id=$1",
+    [userId]
+  );
+  return rows[0] || null;
+};
 
 export const removeUser = async(userId)=>{
   const {rowCount} = await query("DELETE FROM users WHERE user_id=$1",[userId])

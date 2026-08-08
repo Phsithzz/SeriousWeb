@@ -1,22 +1,21 @@
 import express from "express";
 import * as cartController from "../Controllers/cartController.js";
+import { requireAdmin, requireAuth } from "../Middleware/auth.js";
 
 const router = express.Router();
 
-// 🔹 Route ฝั่ง admin (static path)
-router.post("/cart/admin", cartController.createCart);
-router.get("/cart/admin", cartController.getAllCart);
-router.put("/cart/admin/:cartId", cartController.updateCart);
-router.delete("/cart/admin/:cartId", cartController.removeCart);
+router.post("/cart/admin", requireAuth, requireAdmin, cartController.createCart);
+router.get("/cart/admin", requireAuth, requireAdmin, cartController.getAllCart);
+router.put("/cart/admin/:cartId", requireAuth, requireAdmin, cartController.updateCart);
+router.delete("/cart/admin/:cartId", requireAuth, requireAdmin, cartController.removeCart);
 
-// 🔹 Route สำหรับลูกค้า (static ก่อน dynamic)
-router.get("/cart/order/:customerEmail",cartController.getCartOrder)
-router.post("/cart/checkcart", cartController.checkCart);
-router.post("/cart/addcart", cartController.addCart);
-router.put("/cart/confirm/:customerEmail", cartController.confirmCart);
-
-// 🔹 Route ที่มี dynamic param ไว้ล่างสุด
-router.get("/cart/:customerEmail", cartController.getCart);
-router.put("/cart/:cartId", cartController.updateCartQuantity);
+router.use("/cart", requireAuth);
+router.get("/cart", cartController.getCart);
+router.get("/cart/orders", cartController.getCartOrder);
+router.get("/cart/status", cartController.checkCart);
+router.post("/cart/items", cartController.addCart);
+router.put("/cart/items/:cartId", cartController.updateCartQuantity);
+router.delete("/cart/items/:cartId", cartController.removeOwnCart);
+router.post("/cart/checkout", cartController.confirmCart);
 
 export default router;

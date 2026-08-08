@@ -81,7 +81,6 @@ const Navbar = () => {
 
   const [isFocus, setFocus] = useState(false);
 
-  const [user, setUser] = useState(null);
   const [name, setName] = useState(null);
   const [login, setLogin] = useState(null);
 
@@ -95,9 +94,6 @@ const Navbar = () => {
     const search = async () => {
       setIsLoading(true);
       try {
-        console.log(
-          `${import.meta.env.VITE_API}/products/search?q=${searchTerm}`
-        );
         const res = await products.searchProduct(searchTerm);
         setResult(res.data);
       } catch (err) {
@@ -115,7 +111,6 @@ const Navbar = () => {
       await users
         .getUser()
         .then((res) => {
-          setUser(res.data);
           setName(res.data.name);
           setLogin(res.data.login);
         })
@@ -137,7 +132,6 @@ const Navbar = () => {
       navigate("/register");
     }
   };
-  console.log(user);
   return (
     <>
       <div className=" bg-black">

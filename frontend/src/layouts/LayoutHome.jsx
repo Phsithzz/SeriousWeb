@@ -14,8 +14,6 @@ const LayoutHome = () => {
     const checkUser = async () => {
       try {
         const res = await user.getUser();
-        console.log("user", res.data.role);
-
         if (res.data.role === "admin") {
           navigate("/admin/products");
         }

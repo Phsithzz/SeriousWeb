@@ -4,13 +4,12 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { getCartOrder } from "../function/cart";
 import { Link } from "react-router-dom";
-const CartOrder = ({ email }) => {
+const CartOrder = () => {
   const [order, setOrder] = useState([]);
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await getCartOrder(email);
-        console.log(res.data);
+        const res = await getCartOrder();
         setOrder(res.data);
       } catch (err) {
         console.log(err);
@@ -26,7 +25,6 @@ const CartOrder = ({ email }) => {
         </p>
     ):(
 order.map((item) => (
-        <>
           <div
             className="w-full min-h-[300px] bg-white border border-gray-200 rounded-md shadow-md mb-6"
             key={item.cart_id}
@@ -138,7 +136,6 @@ order.map((item) => (
               </div>
             </div>
           </div>
-        </>
       ))
     )}
       

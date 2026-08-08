@@ -7,19 +7,14 @@ import { Link } from "react-router-dom";
 const ProductBrand = ({ brand }) => {
   const [product, setProduct] = useState([]);
   useEffect(() => {
-    loadData();
+    let active = true;
+    products.getProductBrand(brand)
+      .then((res) => active && setProduct(res.data))
+      .catch((err) => console.log(err));
+    return () => {
+      active = false;
+    };
   }, [brand]);
-
-  const loadData = async () => {
-    try {
-      const res = await products.getProductBrand(brand);
-      console.log("API response:", res);
-      console.log("res.data:", res.data);
-      setProduct(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
   return (
     <>
       <div className="p-2">
@@ -39,9 +34,8 @@ const ProductBrand = ({ brand }) => {
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ">
         {product.map((brands) => (
-          <Link to={`/products/${brands.product_id}`}>
+          <Link key={brands.product_id} to={`/products/${brands.product_id}`}>
             <div
-              key={brands.product_id}
               className="flex flex-col hover:border hover:border-[#DCDCDC]  rounded-xl bg-white  shadow-xl space-y-2 p-4 transition-transform duration-300 ease-in-out overflow-hidden
              hover:scale-110"
             >

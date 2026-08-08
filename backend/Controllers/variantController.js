@@ -1,84 +1,63 @@
 import * as variantService from "../Services/variantService.js";
+import {
+  cleanText,
+  parseNonNegativeInteger,
+  parseNonNegativeNumber,
+  parsePositiveInteger,
+} from "../Utils/validation.js";
 
-//C R U D
-
-//Admin use
+const parseVariant = (body) => {
+  const variant = {
+    product_id: parsePositiveInteger(body.product_id),
+    stock_quantity: parseNonNegativeInteger(body.stock_quantity),
+    price: parseNonNegativeNumber(body.price),
+    size: cleanText(String(body.size ?? ""), 50),
+    color: cleanText(body.color, 100),
+  };
+  return variant.product_id && variant.stock_quantity !== null && variant.price !== null && variant.size && variant.color
+    ? variant
+    : null;
+};
 
 export const createVariant = async (req, res) => {
-  console.log("POST /variant is request")
+  const variant = parseVariant(req.body);
+  if (!variant) return res.status(400).json({ message: "Invalid variant data" });
   try {
-    const variantData = req.body;
-    const newvariant = await variantService.createVariant(variantData);
-    res.status(200).json(newvariant);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error createVariant",
-      error: err.message,
-    });
+    return res.status(201).json(await variantService.createVariant(variant));
+  } catch (error) {
+    if (error.code === "23503") return res.status(400).json({ message: "Product not found" });
+    throw error;
   }
 };
 
-export const getVariant = async (req, res) => {
-  console.log("GET /variant is request")
-  try {
-    const variant = await variantService.getVariant();
-    res.status(200).json(variant);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error getVariant",
-      error: err.message,
-    });
-  }
-};
+export const getVariant = async (_req, res) =>
+  res.status(200).json(await variantService.getVariant());
 
 export const updateVariant = async (req, res) => {
-  console.log("PUT /variant/:id")
+  const variantId = parsePositiveInteger(req.params.variantId);
+  const variant = parseVariant(req.body);
+  if (!variantId || !variant) return res.status(400).json({ message: "Invalid variant data" });
   try {
-    const {variantId} = req.params;
-    const variantData = req.body;
-
-    const updateVariant = await variantService.updateVariant(
-      variantId,
-      variantData
-    );
-
-    if (!updateVariant) {
-      return res.status(400).json({
-        message: "Product Variant not Found",
-      });
-    }
-    res.status(200).json(updateVariant);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error updateVariant",
-      error: err.message,
-    });
+    const updated = await variantService.updateVariant(variantId, variant);
+    if (!updated) return res.status(404).json({ message: "Variant not found" });
+    return res.status(200).json(updated);
+  } catch (error) {
+    if (error.code === "23503") return res.status(400).json({ message: "Product not found" });
+    throw error;
   }
 };
 
 export const deleteVariant = async (req, res) => {
-  console.log("DELETE /variant/:id")
+  const variantId = parsePositiveInteger(req.params.variantId);
+  if (!variantId) return res.status(400).json({ message: "Invalid variant id" });
   try {
-    const {variantId} = req.params
     const deleted = await variantService.deleteVariant(variantId);
-
-    if (!deleted) {
-      return res.status(404).json({
-        message: "Product Variant not Found",
-      });
+    if (!deleted) return res.status(404).json({ message: "Variant not found" });
+    return res.status(200).json({ message: "Variant deleted" });
+  } catch (error) {
+    if (error.code === "23503") {
+      return res.status(409).json({ message: "Variant is referenced and cannot be deleted" });
     }
-
-    res.status(200).send("DELETED");
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error deleteVariant",
-      error: err.message,
-    });
+    throw error;
   }
 };
-
-//Admin use

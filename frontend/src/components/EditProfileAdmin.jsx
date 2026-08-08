@@ -27,7 +27,6 @@ const EditProfileAdmin = ({ onCancel, email, checkImage }) => {
   const handleUploadImage = async () => {
     if (!file) return alert("เลือกไฟล์ก่อนอัปโหลด");
     const formData = new FormData();
-    formData.append("email", email);
     formData.append("file", file);
 
     setLoading(true);
@@ -60,7 +59,7 @@ const EditProfileAdmin = ({ onCancel, email, checkImage }) => {
         />
         <label className="absolute cursor-pointer bottom-0 rounded-full w-12 h-12 flex items-center justify-center right-0 bg-black">
           <FaRegEdit className="text-white text-xl" />
-          <input type="file" className="hidden" onChange={handleFileChange} />
+          <input type="file" accept="image/jpeg" className="hidden" onChange={handleFileChange} />
         </label>
       </div>
 

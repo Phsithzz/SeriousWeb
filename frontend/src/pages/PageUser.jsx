@@ -1,6 +1,5 @@
 import Navbar from "../components/Navbar.jsx";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import * as users from "../function/user.js";
 import { FaRegUser } from "react-icons/fa";
 import { RiLogoutBoxLine } from "react-icons/ri";
@@ -31,7 +30,6 @@ const PageUser = () => {
 
   const [editMessageUser, setEditMessageUser] = useState(null);
   const [editMessagePassword, setEditMessagePassword] = useState(null);
-  const [message, setMessage] = useState(null);
 
   const [tempName, setTempName] = useState("");
   const [tempLastname, setTempLastname] = useState("");
@@ -49,8 +47,7 @@ const PageUser = () => {
     const getInfoUser = async () => {
       if (!email) return;
       try {
-        const res = await users.getOneUser(email);
-        console.log(res);
+        const res = await users.getOneUser();
         setName(res.data.name);
         setLastname(res.data.lastname);
       } catch (err) {
@@ -58,10 +55,6 @@ const PageUser = () => {
       }
     };
     getInfoUser();
-  }, [email]);
-
-  useEffect(() => {
-    if (email) checkImage();
   }, [email]);
 
   const getUser = async () => {
@@ -101,7 +94,7 @@ const PageUser = () => {
       email: tempEmail,
     };
     try {
-      await users.userEditInfo(tempEmail, userData);
+      await users.userEditInfo(userData);
       setName(tempName);
       setLastname(tempLastname);
       setEmail(tempEmail);
@@ -124,7 +117,7 @@ const PageUser = () => {
     }
 
     try {
-      await users.updatePassword(email, currentPassword, newPassword);
+      await users.updatePassword(currentPassword, newPassword);
       setEditPassword(false);
       setCurrentPassword("");
       setNewPassword("");
@@ -138,7 +131,8 @@ const PageUser = () => {
     }
   };
 
-  const checkImage = async () => {
+  const checkImage = useCallback(() => {
+    if (!email) return;
     const image = new Image();
     image.src = `${import.meta.env.VITE_API}/img_users/${email}.jpg`;
 
@@ -148,7 +142,11 @@ const PageUser = () => {
     image.onerror = () => {
       setImageUser(false);
     };
-  };
+  }, [email]);
+
+  useEffect(() => {
+    checkImage();
+  }, [checkImage]);
 
   const onFileChange = async (e) => {
     const file = e.target.files[0];
@@ -159,23 +157,21 @@ const PageUser = () => {
   };
   const uploadFile = async () => {
     if (!file) {
-      setMessage("เลือกFile เพื่อ Upload");
+      setEditMessageUser("Please select a JPEG image");
       return;
     }
 
     const formData = new FormData();
-    formData.append("email", email);
     formData.append("file", file);
 
     try {
-      const res = await users.uploadUser(formData);
-      setMessage(res.message);
+      await users.uploadUser(formData);
       checkImage();
       setPreview(null);
       setEditImage(false);
     } catch (err) {
       console.log(err);
-      setMessage("Upload Fail");
+      setEditMessageUser("Upload failed");
     }
   };
 
@@ -333,6 +329,7 @@ const PageUser = () => {
                                     <FaRegEdit className="text-white text-xl font-semibold" />
                                     <input
                                       type="file"
+                                      accept="image/jpeg"
                                       className="hidden"
                                       onChange={onFileChange}
                                     />

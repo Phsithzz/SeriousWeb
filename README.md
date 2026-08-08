@@ -1,76 +1,107 @@
-<h1 align="center">✨ Adidus Sneaker E-commerce Platform ✨</h1>
+# Adidus Sneaker E-commerce
 
-![Demo App](/frontend/public/adidus.png)
+เว็บ e-commerce ตัวอย่างแบบ full stack: React/Vite frontend และ Express/PostgreSQL backend รองรับสินค้า variants, ตะกร้า, checkout, ประวัติคำสั่งซื้อ, บัญชีผู้ใช้ และหน้า admin
 
-Adidus is a full-stack web application sample that demonstrates a product catalog, shopping cart, order management, and user authentication. It pairs a Node.js + Express backend with a React frontend built on Vite.
+รายละเอียด security audit, รายการแก้ไขทุกไฟล์, คำอธิบาย Docker/Nginx และขั้นตอน deploy อยู่ที่ [`SECURITY_REFACTOR_DEPLOYMENT.md`](./SECURITY_REFACTOR_DEPLOYMENT.md)
 
-## 🌐 Live Demo Youtube
-🔗 View the app online: [https://www.youtube.com/watch?v=JNIvrwGOgtM]
+## สิ่งที่ต้องมี
 
-## Project Overview
+- Node.js 20 ขึ้นไป
+- PostgreSQL 14 ขึ้นไป
 
-- Purpose: Provide a small e-commerce-like system for managing products (with variants and images), handling shopping carts and orders, and basic user account flows (register/login).
-- Architecture: REST API server (backend) + SPA frontend (React). The backend also includes an OpenAPI/Swagger specification at `backend/Services/swagger.yaml`.
+## เริ่มใช้งานในเครื่อง
 
-## Key Features
+1. สร้างฐานข้อมูลและ schema
 
-- Product and variant management (images supported)
-- Shopping cart operations and order creation
-- User registration, authentication (JWT), and basic user management
-- API documentation via Swagger (YAML spec included)
-
-## Tech Stack
-
-- Backend: Node.js, Express, PostgreSQL (pg), JWT, multer for file uploads
-- Frontend: React, Vite, Tailwind CSS, axios for API calls
-
-## Quick Start
-
-1. Clone this repository  
    ```bash
-    git clone https://github.com/Phsithzz/AdidusWeb.git
-    cd AdidusWeb
-    ```
+   createdb adidus
+   psql -d adidus -f backend/database/schema.sql
+   ```
 
-Backend (API)
+2. คัดลอก `backend/.env.example` เป็น `backend/.env` แล้วใส่ค่า database และ `SECRET_KEY`
+3. คัดลอก `frontend/.env.example` เป็น `frontend/.env`
+4. ติดตั้งและรัน backend
 
-2. Change to the backend folder and install dependencies:
+   ```bash
+   cd backend
+   npm ci
+   npm run dev
+   ```
 
-```bash
-cd backend
-npm install
-```
+5. เปิด terminal อีกหน้าต่างแล้วรัน frontend
 
-3. Create a `.env` in `backend/` with the required variables (example):
+   ```bash
+   cd frontend
+   npm ci
+   npm run dev
+   ```
 
-```env
-PORT=5000
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=your_db_name
-JWT_SECRET=your_jwt_secret
-```
+API จะอยู่ที่ `http://localhost:3000`, UI ที่ `http://localhost:5173` และ Swagger ที่ `http://localhost:3000/api-docs`
 
-3. Run the backend in development (uses nodemon):
-
-```bash
-npm run dev
-```
-
-Frontend (UI)
-
-1. Change to the frontend folder and install dependencies:
+## คำสั่งตรวจคุณภาพ
 
 ```bash
-cd frontend
-npm install
+cd backend && npm test
+cd frontend && npm run lint
+cd frontend && npm run build
+npm audit --omit=dev
 ```
 
-2. Start the Vite dev server:
+## ตั้งค่า production
+
+Backend รองรับทั้ง `DATABASE_URL` ของ managed PostgreSQL และค่า `DBHOST`, `DBPORT`, `DBUSER`, `DBPWD`, `DB` แยกกัน ตัวแปรสำคัญมีดังนี้
+
+- `NODE_ENV=production`
+- `SECRET_KEY`: random secret อย่างน้อย 32 ตัวอักษร
+- `CORS_ORIGINS`: origin ของ frontend แบบ exact match; หลายค่าให้คั่นด้วย comma
+- `COOKIE_SECURE=true`
+- `COOKIE_SAME_SITE=lax`: ใช้ได้เมื่อ frontend/API อยู่ same-site; ถ้า cross-site ต้องใช้ `none` และ HTTPS
+- `TRUST_PROXY=true`: เปิดเมื่ออยู่หลัง reverse proxy ที่เชื่อถือได้
+- `DB_SSL=true`: เปิดตามข้อกำหนดของผู้ให้บริการ PostgreSQL
+- `ENABLE_API_DOCS=false`: production จะปิด Swagger โดย default
+
+Frontend ต้อง build โดยกำหนด `VITE_API=https://api.example.com` ก่อน `npm run build` และ web server ต้อง fallback ทุก SPA route ไป `index.html`
+
+มี Dockerfile แยกสำหรับทั้งสองส่วน:
 
 ```bash
-npm run dev
+docker build -t adidus-api ./backend
+docker build --build-arg VITE_API=https://api.example.com -t adidus-web ./frontend
 ```
 
+หลังสร้าง user คนแรก ให้เลื่อนสิทธิ์ admin ผ่าน SQL ที่เชื่อถือได้:
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'owner@example.com';
+```
+
+ถ้าใช้ฐานข้อมูลเดิม ให้สำรองข้อมูลก่อนแล้วรัน migration hardening:
+
+```bash
+psql "$DATABASE_URL" -f backend/database/migrations/001_hardening.sql
+```
+
+ตรวจ cart ที่อ้างถึง user ซึ่งไม่มีอยู่ก่อน validate FK (อย่าลบจนกว่าจะยืนยันว่าไม่ต้องเก็บ):
+
+```sql
+SELECT c.cart_id, c.customer_email
+FROM cart c
+LEFT JOIN users u ON u.email = c.customer_email
+WHERE u.email IS NULL;
+```
+
+เมื่อแก้ legacy rows แล้ว ให้รันคำสั่ง `VALIDATE CONSTRAINT` ท้ายไฟล์ migration
+
+## Security model
+
+- Session เก็บใน signed JWT ผ่าน HttpOnly cookie และ backend ตรวจ user/role ปัจจุบันจากฐานข้อมูลทุก request
+- Admin API บังคับ authentication และ role; cart/profile ยึด email จาก session ไม่รับตัวตนจาก browser
+- Checkout อ่านราคาจากฐานข้อมูล, lock stock และทำ address/order/cart/stock ใน transaction เดียว
+- Upload รับ JPEG หนึ่งไฟล์ ขนาดไม่เกิน 5 MB และชื่อ product image สุ่มโดย server
+- JSON body จำกัด 100 KB, login จำกัด 10 ครั้งต่อ IP ใน 15 นาที และ mutation ตรวจ allow-listed Origin
+
+## ข้อควรรู้ก่อน scale
+
+ภาพ upload ยังเก็บบน local filesystem (`backend/img_products` และ `backend/img_users`) จึงต้อง mount persistent volume เมื่อ deploy แบบ container/VPS หากจะรันหลาย instance ควรเปลี่ยนเป็น object storage เช่น S3/R2 และย้าย rate limiting ไป Redis หรือ shared store
+
+ห้าม commit `.env`, secret หรือ `node_modules`; production ควรติดตั้งแบบ deterministic ด้วย `npm ci` จาก lockfile

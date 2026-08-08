@@ -1,1220 +1,317 @@
 openapi: 3.0.3
 info:
-  title: fashion_store API
-  version: 1.0.0
-  description: API สำหรับจัดการสินค้า ทั้งส่วน Admin และ User
+  title: Adidus API
+  version: 2.0.0
+  description: REST API for the Adidus storefront. Authentication uses an HttpOnly session cookie.
 servers:
   - url: http://localhost:3000
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
   schemas:
-    Product:
+    Error:
       type: object
       properties:
-        product_id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: "รองเท้า Nike"
-        description:
-          type: string
-          example: "รองเท้าวิ่ง"
-        price:
-          type: number
-          format: float
-          example: 2500.00
-        stock_quantity:
-          type: integer
-          example: 10
-        image_filename:
-          type: string
-          example: "nike_air.jpg"
-        brand:
-          type: string
-          example: "Nike"
-        category_name:
-          type: string
-          example: "Running"
-        detail:
-          type: string
-          example: "รองเท้าวิ่งรุ่นใหม่ล่าสุด"
-
-    Variant:
+        message: { type: string }
+    Credentials:
       type: object
+      required: [email, password]
       properties:
-        variant_id:
-          type: integer
-          example: 1
-        product_id:
-          type: integer
-          example: 1
-        stock_quantity:
-          type: integer
-          example: 50
-        price:
-          type: number
-          format: float
-          example: 2999.99
-        size:
-          type: number
-          example: 42
-        color:
-          type: string
-          example: "Black"
-
-    User:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    Profile:
       type: object
+      required: [name, lastname, email]
       properties:
-        user_id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: "John"
-        lastname:
-          type: string
-          example: "Doe"
-        email:
-          type: string
-          example: "john@gmail.com"
-        password:
-          type: string
-          example: "hashed_password"
-        role:
-          type: string
-          example: "user"
-        profile_image:
-          type: string
-          example: "profile.jpg"
-
-    Cart:
+        name: { type: string, maxLength: 100 }
+        lastname: { type: string, maxLength: 100 }
+        email: { type: string, format: email }
+    CartItemInput:
       type: object
+      required: [variant_id, quantity]
       properties:
-        cart_id:
-          type: integer
-          example: 1
-        customer_email:
-          type: string
-          example: "john@gmail.com"
-        variant_id:
-          type: integer
-          example: 1
-        quantity:
-          type: integer
-          example: 2
-        price:
-          type: number
-          format: float
-          example: 2999.99
-        status:
-          type: boolean
-          example: false
-        order_id:
-          type: integer
-          nullable: true
-          example: null
-        create_at:
-          type: string
-          format: date-time
-          example: "2025-10-30T17:00:00Z"
-
-    Order:
-      type: object
-      properties:
-        order_id:
-          type: integer
-          example: 1
-        customer_email:
-          type: string
-          example: "john@gmail.com"
-        total_price:
-          type: number
-          format: float
-          example: 5999.98
-        status:
-          type: boolean
-          example: true
-        address_id:
-          type: integer
-          example: 1
-        payment_method:
-          type: string
-          example: "Credit Card"
-        create_at:
-          type: string
-          format: date-time
-          example: "2025-10-30T17:00:00Z"
-
+        variant_id: { type: integer, minimum: 1 }
+        quantity: { type: integer, minimum: 1, maximum: 20 }
     Address:
       type: object
+      required: [house_number, village_number, subdistrict, district, province, postal_code]
       properties:
-        address_id:
-          type: integer
-          example: 1
-        house_number:
-          type: string
-          example: "123"
-        village_number:
-          type: string
-          example: "5"
-        subdistrict:
-          type: string
-          example: "Bangkok"
-        district:
-          type: string
-          example: "Bangkok"
-        province:
-          type: string
-          example: "Bangkok"
-        postal_code:
-          type: string
-          example: "10100"
-        create_at:
-          type: string
-          format: date-time
-          example: "2025-10-30T17:00:00Z"
-
+        house_number: { type: string }
+        village_number: { type: string }
+        subdistrict: { type: string }
+        district: { type: string }
+        province: { type: string }
+        postal_code: { type: string }
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Admin access required
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
 paths:
-  # =========================
-  # Admin Endpoints
-  # =========================
-  /products/admin:
-    post:
-      tags:
-        - Products
-      summary: สร้างสินค้าใหม่ (Admin)
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                name: { type: string }
-                description: { type: string }
-                price: { type: number }
-                stock_quantity: { type: integer }
-                image_filename: { type: string }
-                brand: { type: string }
-                category_name: { type: string }
-                detail: { type: string }
-              required:
-                - name
-                - description
-                - price
-                - stock_quantity
-                - image_filename
-      responses:
-        '201':
-          description: สร้างสินค้าสำเร็จ
-          content:
-            application/json:
-              example:
-                product_id: 1
-                name: "รองเท้า Nike"
-                description: "รองเท้าวิ่ง"
-                price: 2500
-                stock_quantity: 10
-                image_filename: "nike_air"
-                brand: "Nike"
-                category_name: "Running"
-                detail: "รองเท้าวิ่งรุ่นใหม่ล่าสุด"
-        '400':
-          description: ไม่พบไฟล์รูปภาพ
-          content:
-            application/json:
-              example: { message: "กรุณาอัพโหลดรูปภาพ" }
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error createProduct" }
-
+  /health:
     get:
-      tags:
-        - Products
-      summary: ดึงสินค้าสำหรับ Admin
+      summary: Database-backed health check
       responses:
-        '200':
-          description: รายการสินค้า
-          content:
-            application/json:
-              example:
-                - product_id: 1
-                  name: "รองเท้า Nike"
-                  description: "รองเท้าวิ่ง"
-                  price: 2500
-                  stock_quantity: 10
-                  image_filename: "nike_air"
-                  brand: "Nike"
-                  category_name: "Running"
-                  detail: "รองเท้าวิ่งรุ่นใหม่ล่าสุด"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error getProductAdmin" }
-
-  /products/admin/{productId}:
+        '200': { description: Healthy }
+        '500': { description: Unhealthy }
+  /user/register:
+    post:
+      summary: Register a customer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Profile'
+                - type: object
+                  required: [password]
+                  properties:
+                    password: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '201': { description: Registered }
+        '400': { description: Invalid input }
+        '409': { description: Email exists }
+  /user/login:
+    post:
+      summary: Start a cookie session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Credentials' }
+      responses:
+        '200': { description: Logged in; sets the token cookie }
+        '401': { description: Invalid credentials }
+        '429': { description: Too many attempts }
+  /user/logout:
+    post:
+      summary: Clear the session cookie
+      responses:
+        '200': { description: Logged out }
+  /user/info:
+    get:
+      summary: Read the current session
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Current user }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /user/me:
+    get:
+      summary: Read the current profile
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Profile }
+        '401': { $ref: '#/components/responses/Unauthorized' }
     put:
-      tags:
-        - Products
-      summary: แก้ไขสินค้า (Admin)
-      parameters:
-        - in: path
-          name: productId
-          required: true
-          schema: { type: integer }
+      summary: Update the current profile
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Profile' }
+      responses:
+        '200': { description: Updated and session refreshed }
+        '409': { description: Email exists }
+  /user/me/password:
+    put:
+      summary: Change the current password
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '200': { description: Updated }
+        '400': { description: Invalid password }
+  /user/me/avatar:
+    post:
+      summary: Upload one JPEG avatar (maximum 5 MB)
+      security: [{ cookieAuth: [] }]
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
+              required: [file]
               properties:
-                name: { type: string }
-                description: { type: string }
-                price: { type: number }
-                stock_quantity: { type: integer }
-                image_filename: { type: string }
-                existingImage: { type: string }
-                brand: { type: string }
-                category_name: { type: string }
-                detail: { type: string }
+                file: { type: string, format: binary }
       responses:
-        '200': { description: "แก้ไขสินค้าสำเร็จ" }
-        '400':
-          description: Product not found
-          content:
-            application/json:
-              example: { message: "Product not Found" }
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error updateProduct" }
-
-  /products/{productId}:
-    delete:
-      tags:
-        - Products
-      summary: ลบสินค้า (Admin)
-      parameters:
-        - in: path
-          name: productId
-          required: true
-          schema: { type: integer }
-      responses:
-        '200':
-          description: ลบสินค้าสำเร็จ
-          content:
-            application/json:
-              example: { message: "DELETED" }
-        '404':
-          description: ไม่พบสินค้า
-          content:
-            application/json:
-              example: { message: "Product not Found" }
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error deleteProduct" }
-
-  # =========================
-  # User / General Endpoints
-  # =========================
+        '200': { description: Uploaded }
+        '400': { description: Invalid upload }
   /products:
     get:
-      tags:
-        - Products
-      summary: ดึงรายการสินค้าสำหรับผู้ใช้ทั่วไป
+      summary: List products
       responses:
-        '200':
-          description: รายการสินค้า
-          content:
-            application/json:
-              example:
-                - product_id: 1
-                  name: "รองเท้า Nike"
-                  description: "รองเท้าวิ่ง"
-                  price: 2500
-                  stock_quantity: 10
-                  image_filename: "nike_air"
-                  brand: "Nike"
-                  category_name: "Running"
-                  detail: "รองเท้าวิ่งรุ่นใหม่ล่าสุด"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error getProduct" }
-
+        '200': { description: Product list }
   /products/{id}:
     get:
-      tags:
-        - Products
-      summary: ดูรายละเอียดสินค้า 1 ชิ้น
+      summary: Read a product and its variants
       parameters:
         - in: path
           name: id
           required: true
           schema: { type: integer }
       responses:
-        '200':
-          description: รายละเอียดสินค้า
-          content:
-            application/json:
-              example:
-                product_id: 1
-                name: "รองเท้า Nike"
-                description: "รองเท้าวิ่ง"
-                price: 2500
-                stock_quantity: 10
-                image_filename: "nike_air"
-                brand: "Nike"
-                category_name: "Running"
-                detail: "รองเท้าวิ่งรุ่นใหม่ล่าสุด"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error getProductId" }
-
-  # =========================
-  # Special Endpoints
-  # =========================
-  /products/show:
-    get:
-      tags:
-        - Products
-      summary: แสดงสินค้าหน้าตัวโชว์
+        '200': { description: Product }
+        '404': { description: Product not found }
+    delete:
+      summary: Delete a product (admin)
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
       responses:
-        '200':
-          description: รายการสินค้า
-          content:
-            application/json:
-              example:
-                - product_id: 1
-                  name: "รองเท้า Nike"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error getProductShow" }
-
+        '200': { description: Deleted }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /products/search:
     get:
-      tags:
-        - Products
-      summary: ค้นหาสินค้าตามคำค้น
+      summary: Search products
       parameters:
         - in: query
           name: q
-          schema: { type: string }
-          description: คำค้นหา
+          schema: { type: string, maxLength: 100 }
       responses:
-        '200':
-          description: ผลลัพธ์การค้นหา
-          content:
-            application/json:
-              example:
-                - product_id: 2
-                  name: "รองเท้า Adidas"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error searchProduct" }
-
-  /products/brand/{brand}:
+        '200': { description: Search results }
+  /products/admin:
     get:
-      tags:
-        - Products
-      summary: แสดงสินค้าตามแบรนด์
-      parameters:
-        - in: path
-          name: brand
-          required: true
-          schema: { type: string }
+      summary: List products (admin)
+      security: [{ cookieAuth: [] }]
       responses:
-        '200':
-          description: รายการสินค้า
-          content:
-            application/json:
-              example:
-                - product_id: 1
-                  name: "รองเท้า Nike"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error getProductBrand" }
-
-  /products/type/{description}:
-    get:
-      tags:
-        - Products
-      summary: แสดงสินค้าตามประเภท
-      parameters:
-        - in: path
-          name: description
-          required: true
-          schema: { type: string }
-      responses:
-        '200':
-          description: รายการสินค้า
-          content:
-            application/json:
-              example:
-                - product_id: 1
-                  name: "รองเท้าวิ่ง"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example: { message: "Server error getProductType" }
-# =========================
-# Users API
-# =========================
-  /user/register:
+        '200': { description: Product list }
+        '403': { $ref: '#/components/responses/Forbidden' }
     post:
-      tags:
-        - Users
-      summary: ลงทะเบียนผู้ใช้ใหม่
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name: { type: string }
-                lastname: { type: string }
-                email: { type: string }
-                password: { type: string }
-              required:
-                - name
-                - lastname
-                - email
-                - password
-      responses:
-        '201':
-          description: สมัครสมาชิกสำเร็จ
-          content:
-            application/json:
-              example:
-                message: "Success"
-                regist: true
-                users:
-                  user_id: 1
-                  name: "John"
-                  lastname: "Doe"
-                  email: "john@gmail.com"
-                  role: "user"
-        '400':
-          description: ข้อมูลไม่ครบ
-          content:
-            application/json:
-              example:
-                message: "Name, lastname, email, and password are required."
-                regist: false
-        '500':
-          description: Server error register
-
-  /user/login:
-    post:
-      tags:
-        - Users
-      summary: เข้าสู่ระบบผู้ใช้
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email: { type: string }
-                password: { type: string }
-      responses:
-        '200':
-          description: เข้าสู่ระบบสำเร็จ
-          content:
-            application/json:
-              example:
-                message: "Login Success"
-                login: true
-                user:
-                  name: "John"
-                  lastname: "Doe"
-                  email: "john@gmail.com"
-                  role: "user"
-        '401':
-          description: รหัสผ่านไม่ถูกต้อง
-          content:
-            application/json:
-              example: { message: "Password Invalid", login: false }
-        '404':
-          description: ไม่พบผู้ใช้
-          content:
-            application/json:
-              example: { message: "User Not Found", login: false }
-
-  /user/logout:
-    get:
-      tags:
-        - Users      
-      summary: ออกจากระบบผู้ใช้
-      responses:
-        '200':
-          description: ออกจากระบบสำเร็จ
-          content:
-            application/json:
-              example:
-                message: "Login Fail"
-                login: false
-        '500':
-          description: Server error logoutUser
-
-  /user/upload:
-    post:
-      tags:
-        - Users    
-      summary: อัปโหลดรูปโปรไฟล์ผู้ใช้
+      summary: Create a product with one JPEG image (admin)
+      security: [{ cookieAuth: [] }]
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      responses:
-        '200':
-          description: อัปโหลดไฟล์สำเร็จ
-          content:
-            application/json:
-              example: { message: "File uploaded successfully" }
-        '400':
-          description: Upload error
-          content:
-            application/json:
-              example: { message: "Upload error" }
-
-  /user/info:
-    get:
-      tags:
-        - Users
-      summary: ตรวจสอบข้อมูลผู้ใช้จาก token
-      responses:
-        '200':
-          description: ข้อมูลผู้ใช้ปัจจุบัน
-          content:
-            application/json:
-              example:
-                name: "John"
-                lastname: "Doe"
-                email: "john@gmail.com"
-                role: "user"
-                login: true
-        '401':
-          description: ไม่มี token
-          content:
-            application/json:
-              example:
-                message: "No User"
-                login: false
-
-  /user/info/{email}:
-    get:
-      tags:
-        - Users
-      summary: ดึงข้อมูลผู้ใช้จาก email
-      parameters:
-        - in: path
-          name: email
-          required: true
-          schema: { type: string }
-      responses:
-        '200':
-          description: ข้อมูลผู้ใช้
-          content:
-            application/json:
-              example:
-                user_id: 1
-                name: "John"
-                lastname: "Doe"
-                email: "john@gmail.com"
-                role: "user"
-        '500':
-          description: Server error getOneUser
-    put:
-      tags:
-        - Users
-      summary: แก้ไขข้อมูลผู้ใช้ตาม email
-      parameters:
-        - in: path
-          name: email
-          required: true
-          schema: { type: string }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
+              required: [name, description, price, stock_quantity, brand, category_name, detail, image]
               properties:
                 name: { type: string }
-                lastname: { type: string }
-                email: { type: string}
+                description: { type: string }
+                price: { type: number }
+                stock_quantity: { type: integer }
+                brand: { type: string }
+                category_name: { type: string }
+                detail: { type: string }
+                image: { type: string, format: binary }
       responses:
-        '200':
-          description: แก้ไขข้อมูลสำเร็จ
-          content:
-            application/json:
-              example:
-                name: "John"
-                lastname: "Smith"
-                email: "john@gmail.com"
-        '400':
-          description: ไม่พบผู้ใช้
-          content:
-            application/json:
-              example: { message: "User Not Found" }
-
-  /user/password/{email}:
+        '201': { description: Created }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /products/admin/{productId}:
     put:
-      tags:
-        - Users
-      summary: เปลี่ยนรหัสผ่านผู้ใช้
+      summary: Update a product (admin)
+      security: [{ cookieAuth: [] }]
       parameters:
         - in: path
-          name: email
-          required: true
-          schema: { type: string }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                currentPassword: { type: string }
-                newPassword: { type: string }
-      responses:
-        '200':
-          description: เปลี่ยนรหัสผ่านสำเร็จ
-          content:
-            application/json:
-              example: { message: "เปลี่ยนรหัสผ่านสำเร็จ ✅" }
-        '400':
-          description: Password ผิด
-          content:
-            application/json:
-              example: { message: "รหัสผ่านปัจจุบันไม่ถูกต้อง" }
-
-  /user:
-    get:
-      tags:
-        - Users
-      summary: ดึงข้อมูลผู้ใช้ทั้งหมด (admin)
-      responses:
-        '200':
-          description: รายชื่อผู้ใช้ทั้งหมด
-          content:
-            application/json:
-              example:
-                - user_id: 1
-                  name: "John"
-                  lastname: "Doe"
-                  email: "john@gmail.com"
-                  role: "user"
-                - user_id: 2
-                  name: "Admin"
-                  lastname: "Boss"
-                  email: "admin@gmail.com"
-                  role: "admin"
-        '500':
-          description: Server error getAllUser
-
-  /user/{userId}:
-    put:
-      tags:
-        - Users
-      summary: อัปเดตข้อมูลผู้ใช้ (admin)
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema: { type: integer }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name: { type: string }
-                lastname: { type: string }
-                role: { type: string }
-      responses:
-        '200':
-          description: อัปเดตข้อมูลสำเร็จ
-          content:
-            application/json:
-              example:
-                user_id: 1
-                name: "John"
-                lastname: "Doe"
-                role: "admin"
-        '400':
-          description: ไม่พบผู้ใช้
-          content:
-            application/json:
-              example: { message: "User not Found" }
-
-    delete:
-      tags:
-        - Users
-      summary: ลบผู้ใช้ (admin)
-      parameters:
-        - in: path
-          name: userId
+          name: productId
           required: true
           schema: { type: integer }
       responses:
-        '200':
-          description: ลบผู้ใช้สำเร็จ
-          content:
-            application/json:
-              example: { message: "DELETED" }
-        '400':
-          description: ไม่พบผู้ใช้
-          content:
-            application/json:
-              example: { message: "User Not Found" }
-        '500':
-          description: Server error removeUser
-# =========================
-# Variant API
-# =========================
-
-  /variant:
+        '200': { description: Updated }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /cart:
+    get:
+      summary: List the current user's active cart
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Cart items }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /cart/items:
     post:
-      tags:
-        - ProductVariants
-      summary: สร้างตัวเลือกสินค้า Variant ใหม่
+      summary: Add an item using the server-side variant price
+      security: [{ cookieAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                product_id:
-                  type: integer
-                  example: 1
-                stock_quantity:
-                  type: integer
-                  example: 50
-                price:
-                  type: number
-                  format: float
-                  example: 2999.99
-                size:
-                  type: number
-                  example: 42
-                color:
-                  type: string
-                  example: "Black"
+            schema: { $ref: '#/components/schemas/CartItemInput' }
       responses:
-        200:
-          description: Product variant created successfully
-        500:
-          description: Server error
-
-    get:
-      tags:
-        - ProductVariants
-      summary: ดึงข้อมูล Variant ทั้งหมดของสินค้าทุกตัว
-      responses:
-        '200':
-          description: Successfully retrieved all variants
-          content:
-            application/json:
-              example:
-                - variant_id: 1
-                  product_id: 1
-                  stock_quantity: 50
-                  price: 2999.99
-                  size: 42
-                  color: "Red"
-                - variant_id: 2
-                  product_id: 1
-                  stock_quantity: 30
-                  price: 3099.99
-                  size: 43
-                  color: "Blue"
-        '500':
-          description: Server error
-  /variant/{variantId}:
+        '201': { description: Added }
+        '400': { description: Invalid item or insufficient stock }
+  /cart/items/{cartId}:
     put:
-      tags:
-        - ProductVariants
-      summary: แก้ไขข้อมูล Variant ตาม ID
+      summary: Change quantity on the current user's cart item
+      security: [{ cookieAuth: [] }]
       parameters:
         - in: path
-          name: variantId
+          name: cartId
           required: true
-          schema:
-            type: integer
-          description: ID of the variant to update
+          schema: { type: integer }
+      responses:
+        '200': { description: Updated }
+    delete:
+      summary: Remove the current user's cart item
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - in: path
+          name: cartId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Deleted }
+  /cart/checkout:
+    post:
+      summary: Atomically create an order and decrement locked stock
+      security: [{ cookieAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [address, payment_method]
               properties:
-                stock_quantity:
-                  type: integer
-                  example: 30
-                price:
-                  type: number
-                  format: float
-                  example: 2599.00
-                size:
-                  type: number
-                  example: 43
-                color:
-                  type: string
-                  example: "White"
+                address: { $ref: '#/components/schemas/Address' }
+                payment_method: { type: string }
       responses:
-        200:
-          description: Variant updated successfully
-        400:
-          description: Product Variant not found
-        500:
-          description: Server error
-
-    delete:
-      tags:
-        - ProductVariants
-      summary: ลบ Variant ตาม ID
-      parameters:
-        - in: path
-          name: variantId
-          required: true
-          schema:
-            type: integer
-          description: ID of the variant to delete
+        '200': { description: Order created }
+        '409': { description: Insufficient stock }
+  /cart/orders:
+    get:
+      summary: List the current user's order items
+      security: [{ cookieAuth: [] }]
       responses:
-        200:
-          description: Variant deleted successfully
-        404:
-          description: Product Variant not found
-        500:
-          description: Server error
-
-
-# =========================
-# Cart API
-# =========================
-
-  /cart/admin:
-        post:
-          tags:
-            - Cart
-          summary: สร้างตะกร้าสินค้าใหม่ (Admin)
-          requestBody:
-            required: true
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    customer_email:
-                      type: string
-                      example: "john@gmail.com"
-                    variant_id:
-                      type: integer
-                      example: 1
-                    quantity:
-                      type: integer
-                      example: 2
-                    price:
-                      type: number
-                      format: float
-                      example: 2999.99
-                    status:
-                      type: boolean
-                      example: false
-                    order_id:
-                      type: integer
-                      example: null
-          responses:
-            201:
-              description: Cart created successfully
-            500:
-              description: Server error
-
-        get:
-          tags:
-            - Cart
-          summary: ดึงรายการตะกร้าสินค้าทั้งหมด (Admin)
-          responses:
-            200:
-              description: List of all carts
-              content:
-                application/json:
-                  example:
-                    - cart_id: 1
-                      customer_email: "john@gmail.com"
-                      variant_id: 1
-                      quantity: 2
-                      price: 2999.99
-                      status: false
-                      order_id: null
-                      create_at: "2025-10-30T17:00:00Z"
-            500:
-              description: Server error
-
-  /cart/admin/{cartId}:
-        put:
-          tags:
-            - Cart
-          summary: แก้ไขตะกร้าสินค้าตาม ID (Admin)
-          parameters:
-            - in: path
-              name: cartId
-              required: true
-              schema:
-                type: integer
-          requestBody:
-            required: true
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    quantity:
-                      type: integer
-                      example: 3
-                    price:
-                      type: number
-                      format: float
-                      example: 3199.99
-                    status:
-                      type: boolean
-                      example: true
-                    order_id:
-                      type: integer
-                      example: 1
-          responses:
-            200:
-              description: Cart updated successfully
-            400:
-              description: Cart not found
-            500:
-              description: Server error
-
-        delete:
-          tags:
-            - Cart
-          summary: ลบตะกร้าสินค้าตาม ID (Admin)
-          parameters:
-            - in: path
-              name: cartId
-              required: true
-              schema:
-                type: integer
-          responses:
-            200:
-              description: Cart deleted successfully
-            404:
-              description: Cart not found
-            500:
-              description: Server error
-  
-  /cart/{customerEmail}:
-        get:
-          tags:
-            - Cart
-          summary: ดึงตะกร้าสินค้าของลูกค้าเฉพาะราย
-          parameters:
-            - in: path
-              name: customerEmail
-              required: true
-              schema:
-                type: string
-          responses:
-            200:
-              description: Customer cart
-              content:
-                application/json:
-                  example:
-                    - cart_id: 1
-                      customer_email: "john@gmail.com"
-                      variant_id: 1
-                      quantity: 2
-                      price: 2999.99
-                      status: false
-                      order_id: null
-                      create_at: "2025-10-30T17:00:00Z"
-            500:
-              description: Server error
-
-  /cart/order/{customerEmail}:
-        get:
-          tags:
-            - Cart
-          summary:  ดึงสรุปออเดอร์ของลูกค้า
-          parameters:
-            - in: path
-              name: customerEmail
-              required: true
-              schema:
-                type: string
-          responses:
-            200:
-              description: Customer order summary
-              content:
-                application/json:
-                  example:
-                    - cart_id: 1
-                      customer_email: "john@gmail.com"
-                      variant_id: 1
-                      quantity: 2
-                      price: 2999.99
-                      status: true
-                      order_id: 1
-                      create_at: "2025-10-30T17:00:00Z"
-            500:
-              description: Server error
-
-  /cart/addcart:
-        post:
-          tags:
-            - Cart
-          summary: เพิ่มสินค้าในตะกร้า
-          requestBody:
-            required: true
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    customer_email:
-                      type: string
-                      example: "john@gmail.com"
-                    variant_id:
-                      type: integer
-                      example: 1
-                    quantity:
-                      type: integer
-                      example: 1
-                    price:
-                      type: number
-                      format: float
-                      example: 2999.99
-          responses:
-            200:
-              description: Item added to cart
-            500:
-              description: Server error
-
-  /cart/confirm/{customerEmail}:
-        put:
-          tags:
-            - Cart
-          summary: ยืนยันตะกร้า (Checkout)
-          parameters:
-            - in: path
-              name: customerEmail
-              required: true
-              schema:
-                type: string
-          requestBody:
-            required: true
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    address:
-                      type: object
-                      properties:
-                        house_number: { type: string, example: "123" }
-                        village_number: { type: string, example: "5" }
-                        subdistrict: { type: string, example: "Bangkok" }
-                        district: { type: string, example: "Bangkok" }
-                        province: { type: string, example: "Bangkok" }
-                        postal_code: { type: string, example: "10100" }
-                    payment_method:
-                      type: string
-                      example: "Credit Card"
-          responses:
-            200:
-              description: Cart confirmed and order created
-            400:
-              description: No items to confirm
-            500:
-              description: Server error
-# =========================
-# Order API
-# =========================
+        '200': { description: Order items }
+  /variant:
+    get:
+      summary: List variants (admin)
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Variant list }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      summary: Create a variant and synchronize product stock (admin)
+      security: [{ cookieAuth: [] }]
+      responses:
+        '201': { description: Created }
   /order/admin:
     get:
-      tags:
-        - Order
-      summary: ดึงรายการออเดอร์ทั้งหมด (Admin)
+      summary: List orders (admin)
+      security: [{ cookieAuth: [] }]
       responses:
-        '200':
-          description: List of all orders
-          content:
-            application/json:
-              example:
-                - order_id: 1
-                  customer_email: "john@gmail.com"
-                  total_price: 5999.99
-                  status: true
-                  address_id: 1
-                  payment_method: "Credit Card"
-                  create_at: "2025-10-30T17:00:00Z"
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example:
-                message: "Server error getOrder"
-
-  /order/admin/{orderId}:
-    delete:
-      tags:
-        - Order
-      summary: ลบออเดอร์ตาม ID (Admin)
-      parameters:
-        - in: path
-          name: orderId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: ลบออเดอร์สำเร็จ
-          content:
-            application/json:
-              example: "DELETED"
-        '404':
-          description: ไม่พบออเดอร์
-          content:
-            application/json:
-              example: { message: "Order not Found" }
-        '500':
-          description: Server error
-          content:
-            application/json:
-              example:
-                message: "Server error removeOrder"
+        '200': { description: Order list }
+        '403': { $ref: '#/components/responses/Forbidden' }

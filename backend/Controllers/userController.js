@@ -1,314 +1,226 @@
-//import
-import * as userService from "../Services/userService.js";
-
-import dotenv from "dotenv";
-
+import { fileURLToPath } from "url";
+import fs from "fs/promises";
+import path from "path";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import * as userService from "../Services/userService.js";
+import { resetLoginRateLimit } from "../Middleware/security.js";
+import {
+  cleanText,
+  isStrongPassword,
+  isValidEmail,
+  normalizeEmail,
+  parsePositiveInteger,
+} from "../Utils/validation.js";
 
-import multer from "multer"
-//import
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+const userImageDirectory = path.resolve(dirname, "../img_users");
+const avatarPath = (email) => path.join(userImageDirectory, `${email}.jpg`);
 
-dotenv.config();
+const tokenFor = (user) =>
+  jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
+    algorithm: "HS256",
+    expiresIn: "1h",
+  });
 
-// upload part
-// กำหนดตำแหน่งที่จะเก็บ file ที่ upload img_users
+const setSessionCookie = (req, res, user) => {
+  res.cookie("token", tokenFor(user), {
+    ...req.app.locals.cookieOptions,
+    maxAge: 60 * 60 * 1000,
+  });
+};
+
+const validateProfile = (body) => {
+  const profile = {
+    name: cleanText(body.name, 100),
+    lastname: cleanText(body.lastname, 100),
+    email: normalizeEmail(body.email),
+  };
+
+  if (!profile.name || !profile.lastname || !isValidEmail(profile.email)) {
+    return null;
+  }
+  return profile;
+};
+
 const storage = multer.diskStorage({
-  destination:function(req,file,cb){
-    cb(null,"img_users")
+  destination: (_req, _file, callback) => callback(null, userImageDirectory),
+  filename: (req, _file, callback) => callback(null, `${req.user.email}.jpg`),
+});
+
+export const uploadUserImage = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 2, parts: 3 },
+  fileFilter: (_req, file, callback) => {
+    if (file.mimetype !== "image/jpeg") {
+      return callback(new multer.MulterError("LIMIT_UNEXPECTED_FILE", "file"));
+    }
+    callback(null, true);
   },
-  filename:function(req,file,cb){
-    const filename = `${req.body.email}.jpg`
-    cb(null,filename)
+}).single("file");
 
-  }
-})
+export const uploadUser = (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "JPEG image is required" });
+  return res.status(200).json({ message: "File uploaded successfully" });
+};
 
-const upload = multer({
-    storage: storage,
-}).single('file');
-
-//ส่วน Upload File
-export const uploadUser = async(req,res)=>{
-  console.log("Upload User Image")
-  upload(req,res,(err)=>{
-    if(err) return res.status(400).json({message:err.message})
-    res.status(200).json({message:"File uploaded successfully"})
-  })
-}
-
-//ใช้ตอนลงทะเบียน
 export const register = async (req, res) => {
-  console.log("POST /user/register is request");
   try {
-    const userData = req.body;
-    if (
-      !userData.email ||
-      !userData.name ||
-      !userData.lastname ||
-      !userData.password
-    ) {
+    const profile = validateProfile(req.body);
+    const password = req.body.password;
+    if (!profile || !isStrongPassword(password)) {
       return res.status(400).json({
-        message: "Name, lastname, email, and password are required.",
-        regist: false,
-      });
-    }
-    const checkuser = await userService.checkEmail(userData.email);
-    if (checkuser) {
-      return res.json({
-        message: `Email ${userData.email} Alreaady exists.`,
+        message: "Valid name, lastname, email, and password (8-128 characters) are required.",
         regist: false,
       });
     }
 
-    const newuser = await userService.register(userData);
-    res.status(201).json({
-      message:"Success",
-      users:newuser,
-      regist: true
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error register",
-      error: err.message,
-      regist: false,
-    });
+    if (await userService.checkEmail(profile.email)) {
+      return res.status(409).json({ message: "Email already exists.", regist: false });
+    }
+
+    const newUser = await userService.register({ ...profile, password });
+    return res.status(201).json({ message: "Success", user: newUser, regist: true });
+  } catch (error) {
+    if (error.code === "23505") {
+      return res.status(409).json({ message: "Email already exists.", regist: false });
+    }
+    console.error("register failed", error);
+    return res.status(500).json({ message: "Unable to register", regist: false });
   }
 };
 
-//ใช้เช็คตอนlogin
 export const login = async (req, res) => {
-  console.log("POST /login is requested");
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Error email and password is required",
-        login: false,
-      });
+    const email = normalizeEmail(req.body.email);
+    const password = req.body.password;
+    if (!isValidEmail(email) || typeof password !== "string") {
+      return res.status(400).json({ message: "Valid email and password are required", login: false });
     }
 
-    const checkuser = await userService.checkEmail(email);
-
-    if (!checkuser) {
-      return res.status(404).json({ message: "User Not Found", login: false });
+    const user = await userService.checkEmail(email);
+    const isMatch = user ? await bcrypt.compare(password, user.passwordhash) : false;
+    if (!isMatch) {
+      res.clearCookie("token", req.app.locals.cookieOptions);
+      return res.status(401).json({ message: "Invalid email or password", login: false });
     }
 
-    const isMatch = await bcrypt.compare(password, checkuser.passwordhash);
-    if (isMatch) {
-      const theuser = {
-        name:checkuser.name,
-        lastname:checkuser.lastname,
-        email:checkuser.email,
-        role:checkuser.role
-
-        
-      };
-      const secret_key = process.env.SECRET_KEY;
-      const token = jwt.sign(theuser, secret_key, { expiresIn: "1h" });
-      res.cookie("token", token, {
-        maxAge: 3600000,
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      });
-      res.status(200).json({
-        message: "Login Success",
-        token:token,
-        login: true,
-        user:theuser
-      });
-    } else {
-      res.clearCookie("token", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      });
-      res.status(401).json({
-        message: "Password Invalid",
-        login: false,
-      });
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error login",
-      error: err.message,
-      login: false,
-    });
-  }
-};
-
-//เอาไว้ใช้ตอนuserดูข้อมูลของตนเอง และ เอาไว้เช็คtoken เพื่อดูว่าuser loginรึยัง
-export const getUser = async (req, res) => {
-  console.log("GET /user/info is requested.");
-  try {
-    const token = req.cookies.token;
-    if (!token) {
-      return res.json({ message: "No User ", login: false });
-    }
-
-    const secret_key = process.env.SECRET_KEY;
-    const user = jwt.verify(token, secret_key);
-    console.log(user);
-    return res.json({
-      name:user.name,
-      lastname:user.lastname,
+    const publicUser = {
+      name: user.name,
+      lastname: user.lastname,
       email: user.email,
-      role:user.role,
-      login: true,  
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Server error getUser",
-      login:false,
-      error: err.message,
-    });
+      role: user.role,
+    };
+    resetLoginRateLimit(req.ip);
+    setSessionCookie(req, res, publicUser);
+    return res.status(200).json({ message: "Login Success", login: true, user: publicUser });
+  } catch (error) {
+    console.error("login failed", error);
+    return res.status(500).json({ message: "Unable to login", login: false });
   }
 };
 
-//เอาไว้ใช้ลบcookie เมื่อuser กด ออกจากระบบ
-export const logoutUser = async(req,res)=>{
-  console.log("GET /user/logout is request")
+export const getUser = (req, res) => res.status(200).json({ ...req.user, login: true });
+
+export const logoutUser = (req, res) => {
+  res.clearCookie("token", req.app.locals.cookieOptions);
+  return res.status(200).json({ message: "Logout successful", login: false });
+};
+
+export const getOneUser = async (req, res) => {
+  const user = await userService.getOneUser(req.user.email);
+  return res.status(200).json(user);
+};
+
+export const userEditInfo = async (req, res) => {
   try {
-    res.clearCookie("token",{
-      httpOnly:true,
-      secure:true,
-      sameSite:'strict'
-    })
+    const profile = validateProfile(req.body);
+    if (!profile) return res.status(400).json({ message: "Invalid profile data" });
 
-    res.json({
-      message:"Login Fail",login:false
-    })
+    const updatedUser = await userService.userEditInfo(req.user.email, profile);
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
 
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({
-      message:"Server error logoutUser",
-      error:err.message
-    })
-    
-  }
-}
-
-//ใช้แสดงข้อมูลทั้งหมดของuser แต่ละคน
-export const getOneUser = async(req,res)=>{
-  console.log("GET /user/info/:email is request")
-  try {
-    const {email} = req.params
-    const getuser = await userService.getOneUser(email)
-    res.status(200).json(getuser)
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({
-      message:"Server error getOneUser",
-      error:err.message
-    })
-    
-  }
-}
-
-//user แก้ไขข้อมูลส่วนตัว
-export const userEditInfo = async(req,res)=>{
-  console.log("PUT /user/info/:email is request")
-  try {
-    const {email} = req.params
-    const  userData = req.body
-    const editUser = await userService.userEditInfo(email,userData)
-    if(!editUser){
-      return res.status(400).json({
-        message:"User Not Found"
-      })
+    if (updatedUser.email !== req.user.email) {
+      await fs.rename(avatarPath(req.user.email), avatarPath(updatedUser.email)).catch((error) => {
+        if (error.code !== "ENOENT") console.error("avatar rename failed", error);
+      });
     }
-    res.status(200).json({
-       email: editUser.email,
-      name: editUser.name,
-      lastname: editUser.lastname
-    })
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({
-      message:"Server error userEditInfo",
-      error:err.message
-    })
-    
+
+    setSessionCookie(req, res, updatedUser);
+    return res.status(200).json(updatedUser);
+  } catch (error) {
+    if (error.code === "23505") return res.status(409).json({ message: "Email already exists" });
+    console.error("profile update failed", error);
+    return res.status(500).json({ message: "Unable to update profile" });
   }
-  
-}//user อัพเดทรหัสผ่าน
+};
+
 export const updatePassword = async (req, res) => {
   try {
-    const { email } = req.params;
     const { currentPassword, newPassword } = req.body;
-
-    const updated = await userService.updatePassword(email, currentPassword, newPassword);
-
-    res.status(200).json({ message: "เปลี่ยนรหัสผ่านสำเร็จ ✅" });
-  } catch (err) {
-    console.log(err);
-    res.status(400).json({ message: err.message });
+    if (typeof currentPassword !== "string" || !isStrongPassword(newPassword)) {
+      return res.status(400).json({ message: "New password must be 8-128 characters" });
+    }
+    await userService.updatePassword(req.user.email, currentPassword, newPassword);
+    return res.status(200).json({ message: "Password updated" });
+  } catch (error) {
+    return res.status(400).json({ message: "Current password is incorrect" });
   }
 };
-//C R U D
 
-//Admin use
+export const getAllUser = async (_req, res) => {
+  const users = await userService.getAllUser();
+  return res.status(200).json(users);
+};
 
-export const getAllUser = async(req,res)=>{
-  console.log("GET /user is request")
+export const updateUser = async (req, res) => {
   try {
-    const user = await userService.getAllUser()
-    res.status(200).json(user)
-  } catch (err) {
-    console.log(err)
-    res.status(500).message({
-      message:"Server error getAllUser",
-      error:err.message
-    })
-    
-  }
-}
+    const userId = parsePositiveInteger(req.params.userId);
+    const profile = validateProfile(req.body);
+    const role = req.body.role;
+    if (!userId || !profile || !["user", "admin"].includes(role)) {
+      return res.status(400).json({ message: "Invalid user data" });
+    }
 
-export const updateUser = async(req,res)=>{
-  console.log("PUT /user/:userId is request")
-  try {
-    const {userId} = req.params
-    const userData = req.body
-    const updateUser = await userService.updateUser(userId,userData)
-    if(!updateUser){
-      return res.status(400).json({
-        message: "User not Found",
+    const target = await userService.getUserById(userId);
+    if (!target) return res.status(404).json({ message: "User not found" });
+    if (target.email === req.user.email && role !== "admin") {
+      return res.status(400).json({ message: "You cannot remove your own admin role" });
+    }
+
+    const updated = await userService.updateUser(userId, { ...profile, role });
+    if (updated.email !== target.email) {
+      await fs.rename(avatarPath(target.email), avatarPath(updated.email)).catch((error) => {
+        if (error.code !== "ENOENT") console.error("avatar rename failed", error);
       });
     }
-    res.status(200).json(updateUser)
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({
-      message:"Server error updateUser",
-      error:err.message
-    })
-    
+    if (target.email === req.user.email) setSessionCookie(req, res, updated);
+    return res.status(200).json(updated);
+  } catch (error) {
+    if (error.code === "23505") return res.status(409).json({ message: "Email already exists" });
+    console.error("admin user update failed", error);
+    return res.status(500).json({ message: "Unable to update user" });
   }
-}
+};
 
-export const removeUser  = async(req,res)=>{
-  console.log("DELETE /user/:userId is request")
+export const removeUser = async (req, res) => {
+  const userId = parsePositiveInteger(req.params.userId);
+  if (!userId) return res.status(400).json({ message: "Invalid user id" });
+
+  const target = await userService.getUserById(userId);
+  if (!target) return res.status(404).json({ message: "User not found" });
+  if (target.email === req.user.email) {
+    return res.status(400).json({ message: "You cannot delete your own account" });
+  }
+
   try {
-    const {userId} = req.params
-    const deleted = await userService.removeUser(userId)
-
-    if(!deleted){
-      return res.status(400).json({message:"User Not Found"})
+    await userService.removeUser(userId);
+    return res.status(200).json({ message: "User deleted" });
+  } catch (error) {
+    if (error.code === "23503") {
+      return res.status(409).json({ message: "User has order or cart history and cannot be deleted" });
     }
-
-    res.status(200).send("DELETED")
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({
-      message:"Server error removeUser",
-      error:err.message
-    })
-    
+    throw error;
   }
-}
+};

@@ -243,7 +243,7 @@ const ModalProductAdmin = ({ onClose, mode, onSubmit, selectedData }) => {
                   onChange={handleFileChange}
                   className="border border-gray-300 px-2 py-2 rounded-md"
                   id="image"
-                  accept="image/*"
+                  accept="image/jpeg"
                 />
                 <div className="flex justify-center mt-6">
                   {preview && (

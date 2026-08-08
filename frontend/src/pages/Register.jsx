@@ -25,7 +25,6 @@ const Register = () => {
 
     try {
       const res = await user.register({ name, lastname, email, password });
-      console.log(res.data);
       setRegist(res.data.regist);
       setMessage(res.data.message);
 

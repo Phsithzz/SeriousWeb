@@ -4,7 +4,7 @@ import * as products from "../function/product.js";
 import { TbRulerMeasure } from "react-icons/tb";
 import { HiOutlineChevronDown } from "react-icons/hi";
 import { HiOutlineChevronUp } from "react-icons/hi";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import Detail from "../components/Detail.jsx";
 import * as user from "../function/user.js";
 import * as cart from "../function/cart.js";
@@ -56,7 +56,6 @@ const ProductDetail = () => {
     const loadData = async () => {
       try {
         const resId = await products.getProductId(id);
-        console.log("ข้อมูลสินค้าที่ได้รับ:", resId.data);
         setProduct(resId.data);
 
         window.scrollTo(0, 0);
@@ -84,7 +83,7 @@ const ProductDetail = () => {
     if (email) {
       const loadDataCart = async () => {
         try {
-          const res = await cart.getCart(email);
+          const res = await cart.getCart();
           setCarts(res.data);
         } catch (err) {
           console.log(err);
@@ -105,7 +104,6 @@ const ProductDetail = () => {
     try {
       const userRes = await user.getUser();
       const isLoggedIn = userRes.data.login;
-      const userEmail = userRes.data.email;
 
       if (!isLoggedIn) {
         setMessage("คุณยังไม่ได้ Login ต้อง Login ก่อนซื้อสินค้า");
@@ -113,22 +111,18 @@ const ProductDetail = () => {
       }
 
       const cartData = {
-        customer_email: userEmail,
         variant_id: selectedVariant.variant_id,
         quantity: 1,
-        price: product.price,
       };
 
-      console.log("Sending data to cart:", cartData);
       const cartRes = await cart.addCart(cartData);
 
       if (cartRes.data.cartOK) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         setShowCart(true);
-        const res = await cart.getCart(userEmail);
+        const res = await cart.getCart();
         setCarts(res.data);
 
-        console.log("Add to cart response:", cartRes.data.messageAddCart);
       } else {
         Swal.fire({
           icon: "warning",
@@ -188,7 +182,7 @@ const ProductDetail = () => {
                   )}
                 </button>
                 {isOpen && (
-                  <motion.div
+                  <Motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -206,7 +200,7 @@ const ProductDetail = () => {
                         </p>
                       </div>
                     ))}
-                  </motion.div>
+                  </Motion.div>
                 )}
               </div>
             </div>

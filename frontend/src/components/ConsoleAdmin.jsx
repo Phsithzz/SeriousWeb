@@ -9,8 +9,7 @@ import { AiOutlineOrderedList } from "react-icons/ai";
 import { RiLogoutBoxLine } from "react-icons/ri";
 
 import * as user from "../function/user.js";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import EditProfileAdmin from "./EditProfileAdmin.jsx";
@@ -25,36 +24,49 @@ const ConsoleAdmin = () => {
   const [showLogout, setShowLogout] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
-    getUser();
-  });
+    let active = true;
+    user.getUser()
+      .then((res) => {
+        if (active) setEmail(res.data.email);
+      })
+      .catch(() => navigate("/login"));
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
 
   useEffect(() => {
-    const getInfoUser = async () => {
-      if (!email) return;
+    if (!email) return;
+    let active = true;
+    const loadProfile = async () => {
       try {
-        const res = await user.getOneUser(email);
-        console.log(res);
-        setName(res.data.name);
-        setLastname(res.data.lastname);
+        const res = await user.getOneUser();
+        if (active) {
+          setName(res.data.name);
+          setLastname(res.data.lastname);
+        }
       } catch (err) {
         console.log(err);
       }
     };
-    getInfoUser();
+    const image = new Image();
+    image.src = `${import.meta.env.VITE_API}/img_users/${email}.jpg`;
+    image.onload = () => active && setImageUser(true);
+    image.onerror = () => active && setImageUser(false);
+    loadProfile();
+    return () => {
+      active = false;
+    };
   }, [email]);
 
-  useEffect(() => {
-    if (email) checkImage();
-  }, [email]);
-
-  const getUser = async () => {
-    await user
-      .getUser()
-      .then((res) => {
-        setEmail(res.data.email);
-      })
-      .catch((err) => console.log(err.message));
+  const checkImage = () => {
+    if (!email) return;
+    const image = new Image();
+    image.src = `${import.meta.env.VITE_API}/img_users/${email}.jpg?${Date.now()}`;
+    image.onload = () => setImageUser(true);
+    image.onerror = () => setImageUser(false);
   };
+
   const userLogout = async () => {
     try {
       await user.logoutUser();
@@ -64,20 +76,6 @@ const ConsoleAdmin = () => {
       console.log(err);
     }
   };
-  const checkImage = async () => {
-    const image = new Image();
-    image.src = `${import.meta.env.VITE_API}/img_users/${email}.jpg`;
-
-    image.onload = () => {
-      setImageUser(true);
-    };
-    image.onerror = () => {
-      setImageUser(false);
-    };
-  };
-
-
- 
   return (
     <>
       <div className="flex flex-col h-screen p-4">

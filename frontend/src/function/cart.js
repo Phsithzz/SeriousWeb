@@ -1,47 +1,17 @@
 import axios from "axios";
 
-export const checkCart= async(email)=>{
-    return await axios.post(`${import.meta.env.VITE_API}/cart/checkcart`,email)
+const api = import.meta.env.VITE_API;
 
-}
+export const addCart = (cartData) => axios.post(`${api}/cart/items`, cartData);
+export const getCart = () => axios.get(`${api}/cart`);
+export const getCartOrder = () => axios.get(`${api}/cart/orders`);
+export const updateCartQuantity = (cartId, quantity) =>
+  axios.put(`${api}/cart/items/${cartId}`, { newQuantity: quantity });
+export const removeCart = (cartId) => axios.delete(`${api}/cart/items/${cartId}`);
+export const confirmCart = (address, paymentMethod) =>
+  axios.post(`${api}/cart/checkout`, { address, payment_method: paymentMethod });
 
-export const addCart = async(cartData)=>{
-    return await axios.post(`${import.meta.env.VITE_API}/cart/addcart`,cartData)
-}
-
-export const getCart = async(customerEmail)=>{
-    return await axios.get(`${import.meta.env.VITE_API}/cart/${customerEmail}`)
-}
-
-export const getCartOrder = async(customerEmail)=>{
-return await axios.get(`${import.meta.env.VITE_API}/cart/order/${customerEmail}`)
-}
-
-export const updateCartQuantity = async(cartId,quantity)=>{
-    return await axios.put(`${import.meta.env.VITE_API}/cart/${cartId}`,{ newQuantity: quantity })
-}
-
-
-
-export const confirmCart = async(customerEmail,address,paymentMethod)=>{
-    return await axios.put(`${import.meta.env.VITE_API}/cart/confirm/${customerEmail}`,{address,          // ส่ง address object
-    payment_method: paymentMethod})
-}
-
-//admin
-export const createCart = async(cartData)=>{
-    return await axios.post(`${import.meta.env.VITE_API}/cart/admin`,cartData)
-}
-
-export const getAllCart = async()=>{
-    return await axios.get(`${import.meta.env.VITE_API}/cart/admin`)
-}
-
-export const updateCart = async(cartId,cartData)=>{
-    return await axios.put(`${import.meta.env.VITE_API}/cart/admin/${cartId}`,cartData)
-}
-
-export const removeCart = async(cartId)=>{
-    return await axios.delete(`${import.meta.env.VITE_API}/cart/admin/${cartId}`)
-}
-//admin
+export const createCart = (cartData) => axios.post(`${api}/cart/admin`, cartData);
+export const getAllCart = () => axios.get(`${api}/cart/admin`);
+export const updateCart = (cartId, cartData) => axios.put(`${api}/cart/admin/${cartId}`, cartData);
+export const removeCartAdmin = (cartId) => axios.delete(`${api}/cart/admin/${cartId}`);

@@ -59,7 +59,7 @@ const Pay = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await cart.getCart(email);
+        const res = await cart.getCart();
         setCarts(res.data);
       } catch (err) {
         console.log(err);
@@ -114,10 +114,7 @@ const Pay = () => {
     }
 
     try {
-      console.log(address);
-
-      const res = await cart.confirmCart(email, address, paymentMethod);
-      console.log(res.data);
+      await cart.confirmCart(address, paymentMethod);
 
       Swal.fire({
         html: `

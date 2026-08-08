@@ -9,9 +9,4 @@ export const getOrder = async()=>{
     return rows
 }
 
-export const remove = async(orderId)=>{
-    const {rowCount} = await query("DELETE FROM orders WHERE order_id=$1",[orderId])
-
-    return rowCount>0
-}
 //Admind

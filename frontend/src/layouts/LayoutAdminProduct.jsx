@@ -39,7 +39,6 @@ const LayoutAdmin = () => {
     if (modalMode === "add") {
       try {
         const res = await product.createProduct(newData);
-        console.log(res.data);
         setTableData((prev) => [...prev, res.data]);
       } catch (err) {
         console.log(err);
@@ -50,7 +49,6 @@ const LayoutAdmin = () => {
           selectedData.product_id,
           newData
         );
-        console.log(res.data);
         setTableData((prevData) =>
           prevData.map((p) =>
             p.product_id === selectedData.product_id ? res.data : p

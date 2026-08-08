@@ -11,8 +11,6 @@ const HomeProduct = () => {
   }, []);
   const loadData = async () => {
     const res = await product.getProductShow();
-    console.log("API response:", res);
-    console.log("res.data:", res.data);
     setProducts(res.data);
   };
   return (
